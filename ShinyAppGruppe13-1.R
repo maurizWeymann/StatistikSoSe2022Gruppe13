@@ -4,21 +4,27 @@ library(tidyverse)
 library(data.table)
 library(DT)
 library(highcharter)
+library(ggplot2)
 
 
-titanic_data <- data.table::fread("C:/Users/49177/git/htw/Statistik/StatistikSoSe2022Gruppe13/titanic_data.csv") 
-colnames(titanic_data)
+titanic_data <- data.table::fread("C:/Users/49177/git/htw/Statistik/StatistikSoSe2022Gruppe13/titanic_data.csv")
 #Daten aufbereitung
-titanic_data <-  titanic_data %>% mutate(Age = replace(Age, Age>0 & Age<1, NA))#Statt Na 0?
-titanic_data$Age <- as.integer(titanic_data$Age)
-titanic_data$Survived <- factor(titanic_data$Survived,
-                        levels = c(0,1),
-                        labels = c("Died","Survived"))
-titanic_data$Pclass <- factor(titanic_data$Pclass)
-titanic_data$Sex<- factor(titanic_data$Sex)
-titanic_data$Embarked <- factor(titanic_data$Embarked,
-                        levels = c("C","Q","S"),
-                        labels = c("Cherbourg","Queenstown","Southampton"))
+titanic_data <- titanic_data %>%  transmute(
+  Survived =  factor(Survived, 
+                     levels = c(0,1), 
+                     labels = c("Died","Survived") 
+  ),
+  Class = factor(Pclass), 
+  Sex = factor(Sex),
+  Age = as.integer(Age),
+  Siblings = SibSp,
+  Parch,
+  Fare = round(Fare,2),
+  Cabin = gsub("[^a-zA-Z]", "", Cabin),
+  Embarked = factor(Embarked,
+                    levels = c("C","Q","S"),
+                    labels = c("Cherbourg","Queenstown","Southampton"))
+)
 
 #titanic_data %>%
 #  group_by(Survived) %>%
@@ -26,15 +32,19 @@ titanic_data$Embarked <- factor(titanic_data$Embarked,
 
 
 ui <- dashboardPage(
-  dashboardHeader(title = "Titanic Dashboard", titleWidth = 400),
-  dashboardSidebar(
+  dashboardHeader(title = "Titanic Dashboard", titleWidth = 250),
+  dashboardSidebar( width = 250,
     h2("Wähle deine Variablen"),
     selectizeInput("var_a", "Option A", choices = colnames(titanic_data)[3:7], selected = colnames(titanic_data)[3]),
     selectizeInput("var_b", "Option B", choices = colnames(titanic_data)[3:7], selected = colnames(titanic_data)[4]),
     sliderInput("kluster_input_slider","Wähle die Anzahl der Cluster", min = 2, max = 6, value = 3, ticks = FALSE)
   ),
   dashboardBody(
-    highchartOutput("chart2"),
+    plotOutput("overall"),
+    plotOutput("rateVSclass"),
+    
+    
+    #highchartOutput("chart2"),
     #highchartOutput("chart")
   )
 )
@@ -46,6 +56,22 @@ server <- function(input, output, session) {
     
     subdf$cluster <- kmeans(subdf, input$kluster_input_slider)$cluster
     subdf
+  })
+  output$overall <- renderPlot({
+    #Survival rate
+    ggplot(titanic_data, aes(x = Survived)) + 
+      geom_bar()+
+      geom_text(aes(y = ((..count..)/sum(..count..)), label = scales::percent((..count..)/sum(..count..))), stat = "count", vjust = -0.25) +
+      labs(y = "Number of Passengers",
+           title = "Survival Rates")
+  })
+  output$rateVSclass <- renderPlot({
+    #Survival rate vs class
+    ggplot(titanic_data, aes(x = Class, fill = Survived)) +
+      geom_bar() +
+      labs(y = "Number of Passengers",
+           x = "Passenger class",
+           title = "Survival Rates vs Class")
   })
 
 #  output$chart <- renderHighchart({

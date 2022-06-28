@@ -26,16 +26,31 @@ titanic_data <- titanic_data %>%  transmute(
                      labels = c("Cherbourg","Queenstown","Southampton"))
   )
 
-ui <- fluidPage(
+ui <- dashboardPage (
   # Application title
-  titlePanel("Titanic Gruppe13"),
-  tabsetPanel(
-    type = "tabs",
-    tabPanel(
-      "Überlebenswarscheinlichkeit Gesamt",
-      plotOutput("overall"),
-      plotOutput("rateVSclass"),
-      
+  dashboardHeader("Titanic Gruppe"),
+  dashboardSidebar(
+    h2("Wähle deine Variablen"),
+    selectizeInput("var_a", "Option A", choices = colnames(titanic_data)[3:7], selected = colnames(titanic_data)[3]),
+  ),
+  dashboardBody(
+    tabsetPanel(
+      type = "tabs",
+      tabPanel(
+        "Überlebenswarscheinlichkeit Gesamt",
+        fluidRow(
+          selectizeInput("var_b", "Option B", choices = colnames(titanic_data)[3:7], selected = colnames(titanic_data)[4]),
+          sliderInput("kluster_input_slider","Wähle die Anzahl der Cluster", min = 2, max = 6, value = 3, ticks = FALSE),
+        ),
+        fluidRow(
+          plotOutput("overall"),
+        )
+      ),
+      tabPanel(
+        "Überlebenswarscheinlichkeit je Klasse",
+        plotOutput("rateVSclass"),
+        
+      )
     )
   )
 )
