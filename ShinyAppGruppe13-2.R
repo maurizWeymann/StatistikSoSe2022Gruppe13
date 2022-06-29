@@ -57,6 +57,7 @@ ui <- dashboardPage (
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
+  
   output$overall <- renderPlot({
     #Survival rate
     ggplot(titanic_data, aes(x = Survived)) + 

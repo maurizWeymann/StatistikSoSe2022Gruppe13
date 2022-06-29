@@ -81,7 +81,6 @@ ggplot(data, aes(x = SibSp, fill = Survived)) +
 (s_vs_sibsp <- addmargins(table(data$Survived,data$SibSp)))
 (prop_s_vs_sibsp <- round(addmargins(prop.table(table(data$Survived,data$SibSp))), 4) * 100)
 #Survival rate vs Number of Parents/Children Aboard
-
 ggplot(data, aes(x = Parch, fill = Survived)) +
   geom_bar()+
   labs(y = "Number of Passengers",
@@ -124,8 +123,8 @@ ggplot(data %>% drop_na(), aes(x = Embarked, fill = Survived,label = scales::per
 #Tabelle
 (s_vs_embarked <- addmargins(table(data$Survived,data$Embarked)))
 (prop_s_vs_embarked <- round(addmargins(prop.table(table(data$Survived,data$Embarked))), 4) * 100)
-#
-ggplot(data,aes(x=Pclass,y=Fare,fill= Survived))+
+#Survival Rates vs Sex Age and Fare
+        ggplot(data,aes(x=Pclass,y=Fare,fill= Survived))+
   geom_boxplot()+
   facet_grid(Sex ~ .)+
   ylim(0,180)+
