@@ -184,3 +184,4 @@ ggplot(titanic_data %>% drop_na(), aes(x = Cabin, fill = Survived)) +
        x = "Cabin",
        title = "Survival Rates vs Cabin")
 
+#test
