@@ -39,12 +39,10 @@ ui <- dashboardPage(
     h3("Wähle deine Variablen"),
     
     selectInput("feature", "Feature", choices = colnames(titanic_data)[2:9], selected = colnames(titanic_data)[2]),
-    radioButtons("relAbs", "relativ oder absolut?", choices = c("relativ","absolut"), selected = "absolut" ),
     # Display only if the smoother is checked
-    conditionalPanel(condition = "True == true",
-                     sliderInput(inputId = "f", label = "Smoother span:",
-                                 min = 0.01, max = 1, value = 0.67, step = 0.01,
-                                 animate = animationOptions(interval = 100)),
+    conditionalPanel(condition = "s" == "sex",
+                     radioButtons("relAbs", "relativ oder absolut?", choices = c("relativ","absolut"), selected = "absolut" ),
+                     selectInput("feature2", "Feature", choices = colnames(titanic_data)[2:9], selected = colnames(titanic_data)[2]),
                      HTML("Not available for all")
     )
   ),
@@ -82,7 +80,9 @@ server <- function(input, output, session) {
     
   
   output$flexPlot <- renderPlot({
-    if( input$plot == "Yes" ){
+    if( input$plot == "Yes" && input$plot == "Yes" ){
+    }  
+    else if( input$plot == "Yes" ){
       #flexPlot
       ggplot(titanic_data, aes(x = Survived)) + 
         geom_bar()+
@@ -94,12 +94,17 @@ server <- function(input, output, session) {
   output$all <- renderPlot({
     
     if( input$feature == colnames(titanic_data)[2] ){
-      #Survival rate vs class
-      ggplot(titanic_data, aes(x = Class, fill = Survived)) +
-        geom_bar() +
-        labs(y = "Number of Passengers",
-             x = "Passenger class",
-             title = "Survival Rates vs Class")
+      if( input$relAbs ==  "relativ"){
+        
+      }else{
+        #Survival rate vs class
+        ggplot(titanic_data, aes(x = Class, fill = Survived)) +
+          geom_bar() +
+          labs(y = "Number of Passengers",
+               x = "Passenger class",
+               title = "Survival Rates vs Class")
+      }
+    
       
     }else if( input$feature == colnames(titanic_data)[3] ){
       #Survival rate vs Sex
