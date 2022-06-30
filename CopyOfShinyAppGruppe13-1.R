@@ -20,7 +20,7 @@ titanic_data <- titanic_data %>%  transmute(
   Siblings = SibSp,
   Parch,
   Fare = round(Fare,2),
-  Cabin = gsub("[^a-zA-Z]", "", Cabin),
+  Cabin = substr( gsub("[^a-zA-Z]", "", Cabin), 1, 1),
   Embarked = factor(Embarked,
                     levels = c("C","Q","S"),
                     labels = c("Cherbourg","Queenstown","Southampton"))
@@ -41,7 +41,7 @@ ui <- dashboardPage(
     selectInput("feature", "Feature", choices = colnames(titanic_data)[2:9], selected = colnames(titanic_data)[2]),
     # Display only if can be plotted relative
     conditionalPanel(condition = "input.feature == 'Class' || input.feature == 'Sex' || input.feature == 'Age' || input.feature == 'Siblings' || input.feature == 'Parch' || input.feature == 'Fare' || input.feature == 'Cabin'  || input.feature == 'Embarked' ",
-                     h2(input.feature),
+                     #h2(input.feature),
                      radioButtons("relAbs", "relativ oder absolut?", choices = c("relativ","absolut"), selected = "absolut" ),
                      HTML("Not available for all"),
 
@@ -98,9 +98,19 @@ server <- function(input, output, session) {
     if( input$feature == colnames(titanic_data)[2] ){
       if( input$relAbs ==  "relativ"){
         #Survival rate vs class - RELETIVE
+        ggplot(titanic_data, aes(x= Survived, group=Class)) + 
+          geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
+          geom_text(aes( label = scales::percent(..prop..),
+                         y= ..prop.. ), stat= "count", vjust = -.5) +
+          labs(y = "Percent", fill="Survived?",title = "Survival rate vs class") +
+          facet_grid(~Class) +
+          scale_y_continuous(labels = scales::percent)+
+          guides(fill="none")
         
       }else{
         #Survival rate vs class - ABSOLUTE
+        
+        # vielleicht lieber neben einander als uebereinander???
         ggplot(titanic_data, aes(x = Class, fill = Survived)) +
           geom_bar() +
           labs(y = "Number of Passengers",
@@ -111,11 +121,20 @@ server <- function(input, output, session) {
     }else if( input$feature == colnames(titanic_data)[3] ){
       if( input$relAbs ==  "relativ"){
         #Survival rate vs Sex - RELETIVE
+        ggplot(titanic_data, aes(x= Survived, group=Sex)) + 
+          geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
+          geom_text(aes( label = scales::percent(..prop..),
+                         y= ..prop.. ), stat= "count", vjust = -.5) +
+          labs(y = "Percent", fill="Survived?",title = "Survival vs Sex") +
+          facet_grid(~Sex) +
+          scale_y_continuous(labels = scales::percent)+
+          guides(fill="none")
         
       }else{
         #Survival rate vs Sex - ABSOLUTE
         ggplot(titanic_data, aes(x = Sex, fill = Survived,label = scales::percent(prop.table(stat(count))))) +
-          geom_bar() +
+          #geom_bar() +
+          geom_bar(position = "dodge") +
           geom_text(stat = 'count',
                     vjust = -0.4, 
                     size = 3) + 
@@ -125,10 +144,10 @@ server <- function(input, output, session) {
       
     }else if( input$feature == colnames(titanic_data)[4] ){
       if( input$relAbs ==  "relativ"){
-        #Survival rate vs Sex - RELETIVE
+        #Survival rate vs Age - RELETIVE
         
       }else{
-        #Survival rate vs age - ABSOLUTE
+        #Survival rate vs Age - ABSOLUTE
         ggplot(titanic_data, aes(x = Age, fill = Survived)) +
           geom_histogram(binwidth = 10) +
           labs(y = "Number of Passengers",
@@ -149,6 +168,14 @@ server <- function(input, output, session) {
     }else if( input$feature == colnames(titanic_data)[5] ){
       if( input$relAbs ==  "relativ"){
         #Survival rate vs Number of Siblings/Spouses Aboard - RELETIVE
+        ggplot(titanic_data, aes(x= Survived, group=Siblings)) + 
+          geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
+          geom_text(aes( label = scales::percent(..prop..),
+                         y= ..prop.. ), stat= "count", vjust = -.5) +
+          labs(y = "Percent", fill="Survived?",title = "Survival vs number of siblings/spouses aboard") +
+          facet_grid(~Siblings) +
+          scale_y_continuous(labels = scales::percent)+
+          guides(fill="none")
         
       }else{
         #Survival rate vs Number of Siblings/Spouses Aboard - ABSOLUTE
@@ -161,7 +188,14 @@ server <- function(input, output, session) {
     }else if( input$feature == colnames(titanic_data)[6] ){
       if( input$relAbs ==  "relativ"){
         #Survival rate vs Number of Siblings/Spouses Aboard - RELETIVE
-        
+        ggplot(titanic_data, aes(x= Survived, group=Parch)) + 
+          geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
+          geom_text(aes( label = scales::percent(..prop..),
+                         y= ..prop.. ), stat= "count", vjust = -.5) +
+          labs(y = "Percent",title = "Survival vs number of parents/children aboard") +
+          facet_grid(~Parch) +
+          scale_y_continuous(labels = scales::percent)+
+          guides(fill="none")
       }else{
         #Survival rate vs Number of Parents/Children Aboard  - ABSOLUTE           
         ggplot(titanic_data, aes(x = Parch, fill = Survived)) +
@@ -203,14 +237,34 @@ server <- function(input, output, session) {
     }else if( input$feature == colnames(titanic_data)[8] ){
       if( input$relAbs ==  "relativ"){
         #Survival rate vs cabin - RELETIVE
+        ggplot(titanic_data %>% drop_na(), aes(x= Survived, group=Cabin)) + 
+          geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
+          geom_text(aes( label = scales::percent(..prop..),
+                         y= ..prop.. ), stat= "count", vjust = -.5) +
+          labs(y = "Percent",title = "Survival rate vs port of embarkation") +
+          facet_grid(~Cabin) +
+          scale_y_continuous(labels = scales::percent)+
+          guides(fill="none")
         
       }else{
         #Survival rate vs cabin - ABSOLUTE
+        ggplot(titanic_data %>% drop_na(), aes(x = Cabin, fill = Survived)) +
+          geom_bar(position = "dodge") +
+          labs(y = "Number of Passengers",
+               x = "Cabin",
+               title = "Survival vs cabin")
       }
     }else if( input$feature == colnames(titanic_data)[9] ){
       if( input$relAbs ==  "relativ"){
         #Survival rate vs Embarked - RELETIVE
-        
+        ggplot(titanic_data %>% drop_na(), aes(x= Survived, group=Embarked)) + 
+          geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
+          geom_text(aes( label = scales::percent(..prop..),
+                         y= ..prop.. ), stat= "count", vjust = -.5) +
+          labs(y = "Percent",title = "Survival rate vs port of embarkation") +
+          facet_grid(~Embarked) +
+          scale_y_continuous(labels = scales::percent)+
+          guides(fill="none")
       }else{
         #Survival rate vs Embarked - - ABSOLUTE
         ggplot(titanic_data %>% drop_na(), aes(x = Embarked, fill = Survived,label = scales::percent(prop.table(stat(count))))) +
