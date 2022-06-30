@@ -123,11 +123,16 @@ ggplot(data, aes(x = Survived, y = Age)) +
 (prop_s_vs_age <- round(addmargins(prop.table(table(data$Survived,data$Age))), 4) * 100)
 
 #Survival rate vs Number of Siblings/Spouses Aboard
-ggplot(data, aes(x = SibSp, fill = Survived)) +
-  geom_bar()+
+ggplot(data, aes(x = Survived,group=SibSp,label = scales::percent(prop.table(stat(count))))) +
+  geom_bar(position = "dodge",aes(fill=  factor(..x..))) +
+  geom_text(stat = 'count',
+            vjust = -.5) + 
+  facet_grid(~SibSp) +
   labs(y = "Number of Passengers",
        x = "Number of Siblings/Spouses Aboard",
-       title = "Survival vs number of siblings/spouses aboard")
+       title = "Survival vs number of siblings/spouses aboard")+
+  guides(fill="none")
+
 #Relativ
 ggplot(data, aes(x= Survived, group=SibSp)) + 
   geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
@@ -144,11 +149,15 @@ ggplot(data, aes(x= Survived, group=SibSp)) +
 
 #Survival rate vs Number of Parents/Children Aboard
 #Analyse: 1-2 Parents/Children Aboard hat höhere überlebenschance 3-6 sind zu wenig daten
-ggplot(data, aes(x = Parch, fill = Survived)) +
-  geom_bar(position = "dodge")+
+ggplot(data, aes(x = Survived,group=Parch,label = scales::percent(prop.table(stat(count))))) +
+  geom_bar(position = "dodge",aes(fill=  factor(..x..))) +
+  geom_text(stat = 'count',
+            vjust = -.5) + 
+  facet_grid(~Parch) +
   labs(y = "Number of Passengers",
        x = "Number of Parents/Children Aboard",
-       title = "Survival vs number of parents/children aboard")
+       title = "Survival vs number of parents/children aboard")+
+  guides(fill="none")
 #Relativ
 ggplot(data, aes(x= Survived, group=Parch)) + 
   geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
@@ -186,12 +195,16 @@ ggplot(data, aes(x = Fare, fill = Survived)) +
        title = "Survival Rates vs Fare")+
   xlim(0,300)
 
-#Survival rate vs Embarked
-ggplot(data %>% drop_na(), aes(x = Embarked, fill = Survived)) +
-  geom_bar(position = "dodge") +
+#Survival rate vs Embarked Problem mit drop na werten
+ggplot(data %>% drop_na(), aes(x = Survived,group=Embarked,label = scales::percent(prop.table(stat(count))))) +
+  geom_bar(position = "dodge",aes(fill=  factor(..x..))) +
+  geom_text(stat = 'count',
+            vjust = -.5) + 
+  facet_grid(~Embarked) +
   labs(y = "Number of Passengers",
        x = "Port of embarkation",
-       title = "Survival vs port of embarkation")
+       title = "Survival vs port of embarkation")+
+  guides(fill="none")
 #Relativ
 ggplot(data %>% drop_na(), aes(x= Survived, group=Embarked)) + 
   geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
@@ -201,7 +214,7 @@ ggplot(data %>% drop_na(), aes(x= Survived, group=Embarked)) +
   facet_grid(~Embarked) +
   scale_y_continuous(labels = scales::percent)+
   guides(fill="none")
-#Tabelle
+#Tabelle Problem mit drop na werten
 (s_vs_embarked <- addmargins(table(data$Survived,data$Embarked)))
 (prop_s_vs_embarked <- round(addmargins(prop.table(table(data$Survived,data$Embarked))), 4) * 100)
 #Survival Rates vs Sex,Fare and Class
