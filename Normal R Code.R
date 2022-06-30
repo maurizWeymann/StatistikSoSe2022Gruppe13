@@ -22,7 +22,7 @@ titanic_data <- titanic_data %>%  transmute(
   Siblings = SibSp,
   Parch,
   Fare = round(Fare,2),
-  Cabin = gsub("[^a-zA-Z]", "", Cabin),
+  Cabin = substr( gsub("[^a-zA-Z]", "", Cabin), 1, 1),
   Embarked = factor(Embarked,
                     levels = c("C","Q","S"),
                     labels = c("Cherbourg","Queenstown","Southampton"))
@@ -41,21 +41,29 @@ data$Embarked <- factor(data$Embarked,
                         levels = c("C","Q","S"),
                         labels = c("Cherbourg","Queenstown","Southampton"))
 #Survival rate
-ggplot(data, aes(x = Survived)) + 
+ggplot(data, aes(x = Survived, fill = Survived,label = scales::percent(prop.table(stat(count))))) + 
   geom_bar()+
-  geom_text(aes(y = ((..count..)/sum(..count..)), label = scales::percent((..count..)/sum(..count..))), stat = "count", vjust = -0.25) +
+  geom_text(stat = 'count',
+            vjust = -.3) + 
   labs(y = "Number of Passengers",
-       title = "Survival rate")
+       title = "Survival rate")+
+  guides(fill="none")
 
 #Tabelle
-(survivalrate <- table(data$Survived))
+(survivalrate <- addmargins(table(data$Survived)))
+(prop_survivalrate <- round(addmargins(prop.table(table(data$Survived))), 4) * 100)
 
 #Survival rate vs class
-ggplot(data, aes(x = Pclass, fill = Survived)) +
-  geom_bar(position="dodge") +
+ggplot(data, aes(x = Survived,group = Pclass,label = scales::percent(prop.table(stat(count))))) +
+  geom_bar(position="dodge",aes(fill=  factor(..x..))) +
+  geom_text(stat = 'count',
+            vjust = -.5) + 
+  facet_grid(~Pclass) +
   labs(y = "Number of Passengers",
        x = "Passenger class",
-       title = "Survival rate vs Class")
+       title = "Survival rate vs Class")+
+  guides(fill="none")
+
 #Relativ
 ggplot(data, aes(x= Survived, group=Pclass)) + 
   geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
@@ -71,13 +79,14 @@ ggplot(data, aes(x= Survived, group=Pclass)) +
 (prop_s_vs_class <- round(addmargins(prop.table(table(data$Survived,data$Pclass))), 4) * 100)
 
 #Survival rate vs Sex
-ggplot(data, aes(x = Sex, fill = Survived,label = scales::percent(prop.table(stat(count))))) +
-  geom_bar(position = "dodge") +
+ggplot(data, aes(x = Survived,group=Sex,label = scales::percent(prop.table(stat(count))))) +
+  geom_bar(position = "dodge",aes(fill=  factor(..x..))) +
   geom_text(stat = 'count',
-            vjust = -0.4, 
-            size = 3) + 
+           vjust = -.5) + 
+  facet_grid(~Sex) +
   labs(y = "Number of Passengers",
-       title = "Survival vs Sex")
+       title = "Survival vs Sex")+
+  guides(fill="none")
 #Relativ
 ggplot(data, aes(x= Survived, group=Sex)) + 
   geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
@@ -248,13 +257,34 @@ ggplot(titanic_data %>% drop_na(), aes(x= Survived, group=Cabin)) +
 #tabelle
 (s_vs_cabin <- addmargins(table(titanic_data$Survived,titanic_data$Cabin)))
 (prop_s_vs_cabin <- round(addmargins(prop.table(table(titanic_data$Survived,titanic_data$Cabin))), 4) * 100)
+#Cabin
 
 
-
-
+(s_vs_test <- addmargins(table(titanic_data$Survived,titanic_data$Sex,titanic_data$Class)))
+#Cabin,Sex,class
 ggplot(titanic_data %>% drop_na(), aes(x = Cabin, fill = Survived)) +
-  geom_bar() +
-  facet_grid(Class ~.)+
+  geom_bar(position = "dodge") +
+  facet_grid(Class ~Sex)+
   labs(y = "Number of Passengers",
        x = "Cabin",
        title = "Survival Rates vs Cabin")
+#relativ, Sex,class
+ggplot(titanic_data, aes(x = Survived,group = Class,label = scales::percent(prop.table(stat(count))))) +
+  geom_bar(position="dodge",aes(fill=  factor(..x..))) +
+  geom_text(stat = 'count',
+            vjust = -.5) + 
+  facet_grid(Class~Sex) +
+  labs(y = "Number of Passengers",
+       x = "Passenger class",
+       title = "Survival rate vs Class")
+
+#Survival rate vs class
+ggplot(titanic_data, aes(x = Survived,group = Pclass,label = scales::percent(prop.table(stat(count))))) +
+  geom_bar(position="dodge",aes(fill=  factor(..x..))) +
+  geom_text(stat = 'count',
+            vjust = -.5) + 
+  facet_grid(~Pclass) +
+  labs(y = "Number of Passengers",
+       x = "Passenger class",
+       title = "Survival rate vs Class")+
+  guides(fill="none")
