@@ -45,24 +45,26 @@ ggplot(data, aes(x = Survived)) +
   geom_bar()+
   geom_text(aes(y = ((..count..)/sum(..count..)), label = scales::percent((..count..)/sum(..count..))), stat = "count", vjust = -0.25) +
   labs(y = "Number of Passengers",
-       title = "Survival Rates")
+       title = "Survival rate")
 
 #Tabelle
 (survivalrate <- table(data$Survived))
+
 #Survival rate vs class
 ggplot(data, aes(x = Pclass, fill = Survived)) +
   geom_bar(position="dodge") +
   labs(y = "Number of Passengers",
        x = "Passenger class",
-       title = "Survival Rates vs Class")
+       title = "Survival rate vs Class")
 #Relativ
 ggplot(data, aes(x= Survived, group=Pclass)) + 
   geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
   geom_text(aes( label = scales::percent(..prop..),
                  y= ..prop.. ), stat= "count", vjust = -.5) +
-  labs(y = "Percent", fill="Survived?",title = "Survivalrate vs class") +
+  labs(y = "Percent", fill="Survived?",title = "Survival rate vs class") +
   facet_grid(~Pclass) +
-  scale_y_continuous(labels = scales::percent)
+  scale_y_continuous(labels = scales::percent)+
+  guides(fill="none")
 
 #Tabelle
 (s_vs_class <- addmargins(table(data$Survived,data$Pclass)))
@@ -75,15 +77,16 @@ ggplot(data, aes(x = Sex, fill = Survived,label = scales::percent(prop.table(sta
             vjust = -0.4, 
             size = 3) + 
   labs(y = "Number of Passengers",
-       title = "Survival Rates vs Sex")
+       title = "Survival vs Sex")
 #Relativ
 ggplot(data, aes(x= Survived, group=Sex)) + 
   geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
   geom_text(aes( label = scales::percent(..prop..),
                  y= ..prop.. ), stat= "count", vjust = -.5) +
-  labs(y = "Percent", fill="Survived?",title = "Survival Rates vs Sex") +
+  labs(y = "Percent", fill="Survived?",title = "Survival vs Sex") +
   facet_grid(~Sex) +
-  scale_y_continuous(labels = scales::percent)
+  scale_y_continuous(labels = scales::percent)+
+  guides(fill="none")
 #Tabelle
 (s_vs_sex <- addmargins(table(data$Survived,data$Sex)))
 (prop_s_vs_sex <- round(addmargins(prop.table(table(data$Survived,data$Sex))), 4) * 100)
@@ -93,19 +96,19 @@ ggplot(data, aes(x = Age, fill = Survived)) +
   geom_histogram(binwidth = 10) +
   labs(y = "Number of Passengers",
        x = "Age (binwidth = 10)",
-       title = "Survival Rates vs Age")
+       title = "Survival vs Age")
 
 ggplot(data, aes(x = Age, fill = Survived)) +
   geom_density(alpha= 0.7) +
   labs(y = "Number of Passengers",
        x = "Age",
-       title = "Survival Rates vs Age")
+       title = "Survival vs Age")
 
 ggplot(data, aes(x = Survived, y = Age)) +
   geom_boxplot() +
   labs(y = "Age",
        x = "Survived",
-       title = "Survival Rates vs Age")
+       title = "Survival vs Age")
 #Tabelle
 (s_vs_age <- addmargins(table(data$Survived,data$Age)))
 (prop_s_vs_age <- round(addmargins(prop.table(table(data$Survived,data$Age))), 4) * 100)
@@ -115,25 +118,38 @@ ggplot(data, aes(x = SibSp, fill = Survived)) +
   geom_bar()+
   labs(y = "Number of Passengers",
        x = "Number of Siblings/Spouses Aboard",
-       title = "Survival Rates vs Number of Siblings/Spouses Aboard")
+       title = "Survival vs number of siblings/spouses aboard")
 #Relativ
 ggplot(data, aes(x= Survived, group=SibSp)) + 
   geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
   geom_text(aes( label = scales::percent(..prop..),
                  y= ..prop.. ), stat= "count", vjust = -.5) +
-  labs(y = "Percent", fill="Survived?",title = "Survival Rates vs Sex") +
+  labs(y = "Percent", fill="Survived?",title = "Survival vs number of siblings/spouses aboard") +
   facet_grid(~SibSp) +
-  scale_y_continuous(labels = scales::percent)
+  scale_y_continuous(labels = scales::percent)+
+  guides(fill="none")
 
 #Tabelle
 (s_vs_sibsp <- addmargins(table(data$Survived,data$SibSp)))
 (prop_s_vs_sibsp <- round(addmargins(prop.table(table(data$Survived,data$SibSp))), 4) * 100)
+
 #Survival rate vs Number of Parents/Children Aboard
+#Analyse: 1-2 Parents/Children Aboard hat höhere überlebenschance 3-6 sind zu wenig daten
 ggplot(data, aes(x = Parch, fill = Survived)) +
-  geom_bar()+
+  geom_bar(position = "dodge")+
   labs(y = "Number of Passengers",
        x = "Number of Parents/Children Aboard",
-       title = "Survival Rates vs Number of Siblings/Spouses Aboard")
+       title = "Survival vs number of parents/children aboard")
+#Relativ
+ggplot(data, aes(x= Survived, group=Parch)) + 
+  geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
+  geom_text(aes( label = scales::percent(..prop..),
+                 y= ..prop.. ), stat= "count", vjust = -.5) +
+  labs(y = "Percent",title = "Survival vs number of parents/children aboard") +
+  facet_grid(~Parch) +
+  scale_y_continuous(labels = scales::percent)+
+  guides(fill="none")
+
 #Mit prozent
 ggplot(data, aes(x = Parch, fill = Survived,label = scales::percent(prop.table(stat(count))))) +
   geom_bar()+
@@ -146,6 +162,7 @@ ggplot(data, aes(x = Parch, fill = Survived,label = scales::percent(prop.table(s
 #Tabelle
 (s_vs_parch <- addmargins(table(data$Survived,data$Parch)))
 (prop_s_vs_parch <- round(addmargins(prop.table(table(data$Survived,data$Parch))), 4) * 100)
+
 #Survival rate vs Fare
 ggplot(data, aes(x = Fare, fill = Survived)) +
   geom_histogram(binwidth = 10) +
@@ -159,23 +176,37 @@ ggplot(data, aes(x = Fare, fill = Survived)) +
        x = "Fare (binwidth = 10)",
        title = "Survival Rates vs Fare")+
   xlim(0,300)
+
 #Survival rate vs Embarked
-ggplot(data %>% drop_na(), aes(x = Embarked, fill = Survived,label = scales::percent(prop.table(stat(count))))) +
-  geom_bar() +
-  geom_text(stat = 'count',
-            vjust = -0.6, 
-            size = 3) + 
+ggplot(data %>% drop_na(), aes(x = Embarked, fill = Survived)) +
+  geom_bar(position = "dodge") +
   labs(y = "Number of Passengers",
        x = "Port of embarkation",
-       title = "Survival Rates vs Port of embarkation")
+       title = "Survival vs port of embarkation")
+#Relativ
+ggplot(data %>% drop_na(), aes(x= Survived, group=Embarked)) + 
+  geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
+  geom_text(aes( label = scales::percent(..prop..),
+                 y= ..prop.. ), stat= "count", vjust = -.5) +
+  labs(y = "Percent",title = "Survival rate vs port of embarkation") +
+  facet_grid(~Embarked) +
+  scale_y_continuous(labels = scales::percent)+
+  guides(fill="none")
 #Tabelle
 (s_vs_embarked <- addmargins(table(data$Survived,data$Embarked)))
 (prop_s_vs_embarked <- round(addmargins(prop.table(table(data$Survived,data$Embarked))), 4) * 100)
-#Survival Rates vs Sex, Age, Fare and Class
+#Survival Rates vs Sex,Fare and Class
 ggplot(data,aes(x=Pclass,y=Fare,fill= Survived))+
   geom_boxplot()+
   facet_grid(Sex ~ .)+
   ylim(0,180)+
+  labs(x = "Passenger class",
+       title = "Survival Rates vs Sex, Fare and Class")
+#Survival Rates vs Sex, Age and Class
+ggplot(data,aes(x=Pclass,y=Age,fill= Survived))+
+  geom_boxplot()+
+  facet_grid(Sex ~ .)+
+  ylim(0,80)+
   labs(x = "Passenger class",
        title = "Survival Rates vs Sex, Age, Fare and Class")
 
@@ -192,7 +223,7 @@ ggplot(data, aes(x = Survived, y = Age)) +
   labs(y = "Age",
        x = "Survived",
        title = "Survival Rates vs Age")
-#f?r Cabin mit anfangsbuchstaben bewerten
+#für Cabin mit anfangsbuchstaben bewerten
 #Kontingenztafel machen mit abh?ngitkeiten vs unabh?ngigkeit
 sex_impact<-count(data,Survived,Sex)
 #Tabelle class,sex,embarked,Survived
@@ -201,10 +232,25 @@ sex_impact<-count(data,Survived,Sex)
 
 #Survival rate vs Cabin
 ggplot(titanic_data %>% drop_na(), aes(x = Cabin, fill = Survived)) +
-  geom_bar() +
+  geom_bar(position = "dodge") +
   labs(y = "Number of Passengers",
        x = "Cabin",
-       title = "Survival Rates vs Cabin")
+       title = "Survival vs cabin")
+#Relativ
+ggplot(titanic_data %>% drop_na(), aes(x= Survived, group=Cabin)) + 
+  geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
+  geom_text(aes( label = scales::percent(..prop..),
+                 y= ..prop.. ), stat= "count", vjust = -.5) +
+  labs(y = "Percent",title = "Survival rate vs port of embarkation") +
+  facet_grid(~Cabin) +
+  scale_y_continuous(labels = scales::percent)+
+  guides(fill="none")
+#tabelle
+(s_vs_cabin <- addmargins(table(titanic_data$Survived,titanic_data$Cabin)))
+(prop_s_vs_cabin <- round(addmargins(prop.table(table(titanic_data$Survived,titanic_data$Cabin))), 4) * 100)
+
+
+
 
 ggplot(titanic_data %>% drop_na(), aes(x = Cabin, fill = Survived)) +
   geom_bar() +
