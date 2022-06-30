@@ -3,12 +3,31 @@
 #prozent anzeigen2: https://stackoverflow.com/questions/40249943/adding-percentage-labels-to-a-bar-chart-in-ggplot2
 
 #Oskars Working Drive
-#setwd("C:/Users/Oskar/OneDrive/4 Semester HTW/Statistik/Hausaufagbe v2")
+setwd("C:/Users/Oskar/OneDrive/4 Semester HTW/Statistik/Hausuafagbe mit git/StatistikSoSe2022Gruppe13")
 #Mauriz Working Drive
-setwd("G:/Meine Ablage/Sem 5/Statistik/TeamWork")
+#setwd("G:/Meine Ablage/Sem 5/Statistik/TeamWork")
 data<-read.csv("titanic_data.csv")
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(pacman,tidyverse, scales) 
+
+titanic_data <- data.table::fread("titanic_data.csv")
+titanic_data <- titanic_data %>%  transmute(
+  Survived =  factor(Survived, 
+                     levels = c(0,1), 
+                     labels = c("Died","Survived") 
+  ),
+  Class = factor(Pclass), 
+  Sex = factor(Sex),
+  Age = as.integer(Age),
+  Siblings = SibSp,
+  Parch,
+  Fare = round(Fare,2),
+  Cabin = gsub("[^a-zA-Z]", "", Cabin),
+  Embarked = factor(Embarked,
+                    levels = c("C","Q","S"),
+                    labels = c("Cherbourg","Queenstown","Southampton"))
+)
+titanic_data[titanic_data == ""] <- NA  
 
 #Daten aufbereitung
 data <-  data %>% mutate(Age = replace(Age, Age>0 & Age<1, NA))#Statt Na 0?
@@ -118,18 +137,18 @@ ggplot(data %>% drop_na(), aes(x = Embarked, fill = Survived,label = scales::per
             vjust = -0.6, 
             size = 3) + 
   labs(y = "Number of Passengers",
-       x = "Passenger class",
-       title = "Survival Rates vs Class")
+       x = "Port of embarkation",
+       title = "Survival Rates vs Port of embarkation")
 #Tabelle
 (s_vs_embarked <- addmargins(table(data$Survived,data$Embarked)))
 (prop_s_vs_embarked <- round(addmargins(prop.table(table(data$Survived,data$Embarked))), 4) * 100)
-#Survival Rates vs Sex Age and Fare
-        ggplot(data,aes(x=Pclass,y=Fare,fill= Survived))+
+#Survival Rates vs Sex, Age, Fare and Class
+ggplot(data,aes(x=Pclass,y=Fare,fill= Survived))+
   geom_boxplot()+
   facet_grid(Sex ~ .)+
   ylim(0,180)+
   labs(x = "Passenger class",
-       title = "Survival Rates vs Sex Age and Fare")
+       title = "Survival Rates vs Sex, Age, Fare and Class")
 
 #
 ggplot(data, aes(x = Age, fill = Survived)) +
@@ -150,4 +169,18 @@ sex_impact<-count(data,Survived,Sex)
 #Tabelle class,sex,embarked,Survived
 (s_vs_age_test <- addmargins(table(data$Survived,data$Pclass,data$Sex)))
 (prop_s_vs_age_test <- round(addmargins(prop.table(table(data$Survived,data$Pclass,data$Sex))), 4) * 100)
+
+#Survival rate vs Cabin
+ggplot(titanic_data %>% drop_na(), aes(x = Cabin, fill = Survived)) +
+  geom_bar() +
+  labs(y = "Number of Passengers",
+       x = "Cabin",
+       title = "Survival Rates vs Cabin")
+
+ggplot(titanic_data %>% drop_na(), aes(x = Cabin, fill = Survived)) +
+  geom_bar() +
+  facet_grid(Class ~.)+
+  labs(y = "Number of Passengers",
+       x = "Cabin",
+       title = "Survival Rates vs Cabin")
 

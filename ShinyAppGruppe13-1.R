@@ -1,13 +1,9 @@
-library(shiny)
-library(shinydashboard)
-library(tidyverse)
-library(data.table)
-library(DT)
-library(highcharter)
-library(ggplot2)
-
-
-titanic_data <- data.table::fread("C:/Users/49177/git/htw/Statistik/StatistikSoSe2022Gruppe13/titanic_data.csv")
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(pacman,shiny,shinydashboard,tidyverse,data.table,DT,highcharter,ggplot2) 
+#Oskar
+titanic_data <- data.table::fread("titanic_data.csv")
+#Mauriz
+#titanic_data <- data.table::fread("C:/Users/49177/git/htw/Statistik/StatistikSoSe2022Gruppe13/titanic_data.csv")
 #Daten aufbereitung
 titanic_data <- titanic_data %>%  transmute(
   Survived =  factor(Survived, 
@@ -25,7 +21,7 @@ titanic_data <- titanic_data %>%  transmute(
                     levels = c("C","Q","S"),
                     labels = c("Cherbourg","Queenstown","Southampton"))
 )
-
+titanic_data[titanic_data == ""] <- NA
 #titanic_data %>%
 #  group_by(Survived) %>%
 #  summarise(n = n()) 
@@ -39,11 +35,15 @@ ui <- dashboardPage(
     h3("Wähle deine Variablen"),
     radioButtons("plot", "Plot?", choices = c("Yes","No"), selected = "No" ),
     selectInput("feature", "Feature", choices = colnames(titanic_data)[2:9], selected = colnames(titanic_data)[2]),
-    sliderInput("kluster_input_slider","Wähle die Anzahl der Cluster", min = 2, max = 6, value = 3, ticks = FALSE)
+    sliderInput("kluster_input_slider","Wähle die Anzahl der Cluster", min = 2, max = 6, value = 3, ticks = FALSE),
+    conditionalPanel(condition = "input.feature == colnames(titanic_data)[2]",
+                     sliderInput(inputId = "f", label = "Smoother span:",
+                                 min = 0.01, max = 1, value = 0.67, step = 0.01,
+                                 animate = animationOptions(interval = 100)))
   ),
   dashboardBody(
-    plotOutput("flexPlot"),
     plotOutput("all"),
+    plotOutput("flexPlot"),
     plotOutput("sexAgeAndFare")
   )
 
@@ -150,7 +150,19 @@ server <- function(input, output, session) {
              title = "Survival Rates vs Fare")+
         xlim(0,300)
     }else if( input$feature == colnames(titanic_data)[8] ){
-      #Survival rate vs cabin
+      #Survival rate vs Cabin
+      ggplot(titanic_data %>% drop_na(), aes(x = Cabin, fill = Survived)) +
+        geom_bar() +
+        labs(y = "Number of Passengers",
+             x = "Cabin",
+             title = "Survival Rates vs Cabin")
+      
+      ggplot(titanic_data %>% drop_na(), aes(x = Cabin, fill = Survived)) +
+        geom_bar() +
+        facet_grid(Class ~.)+
+        labs(y = "Number of Passengers",
+             x = "Cabin",
+             title = "Survival Rates vs Cabin")
     }else if( input$feature == colnames(titanic_data)[9] ){
       #Survival rate vs Embarked
       ggplot(titanic_data %>% drop_na(), aes(x = Embarked, fill = Survived,label = scales::percent(prop.table(stat(count))))) +
