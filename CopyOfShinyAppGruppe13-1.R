@@ -1,14 +1,12 @@
-library(shiny)
-library(shinydashboard)
-library(tidyverse)
-library(data.table)
-library(DT)
-library(highcharter)
-library(ggplot2)
-
-
-titanic_data <- data.table::fread("C:/Users/49177/git/htw/Statistik/StatistikSoSe2022Gruppe13/titanic_data.csv")
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(pacman,shiny,shinydashboard,tidyverse,data.table,DT,highcharter,ggplot2) 
+#Oskar
+titanic_data <- data.table::fread("titanic_data.csv")
+#Mauriz
+#titanic_data <- data.table::fread("C:/Users/49177/git/htw/Statistik/StatistikSoSe2022Gruppe13/titanic_data.csv")
 #Daten aufbereitung
+titanic_data <- data.table::fread("titanic_data.csv")
+titanic_data <-  titanic_data %>% mutate(Age = replace(Age, Age>0 & Age<1, NA))#Statt Na 0?
 titanic_data <- titanic_data %>%  transmute(
   Survived =  factor(Survived, 
                      levels = c(0,1), 
@@ -17,7 +15,7 @@ titanic_data <- titanic_data %>%  transmute(
   Class = factor(Pclass), 
   Sex = factor(Sex),
   Age = as.integer(Age),
-  Siblings = SibSp,
+  SibSp,
   Parch,
   Fare = round(Fare,2),
   Cabin = substr( gsub("[^a-zA-Z]", "", Cabin), 1, 1),
@@ -25,6 +23,7 @@ titanic_data <- titanic_data %>%  transmute(
                     levels = c("C","Q","S"),
                     labels = c("Cherbourg","Queenstown","Southampton"))
 )
+titanic_data[titanic_data == ""] <- NA  
 
 #titanic_data %>%
 #  group_by(Survived) %>%
