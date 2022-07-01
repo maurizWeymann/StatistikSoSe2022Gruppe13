@@ -333,7 +333,7 @@ ftable(prop.table(mytable,2)) # print table
 summary(mytable) # chi-square test of indepedence
 
 
-Subset_test<- subset(titanic_data%>%drop_na(), select = c(Age,SibSp,Parch,Fare))
+Subset_test<- subset(titanic_data%>%drop_na(), select = c(Age,SibSp,Parch,Fare,Class))
 korrelation <- cor(Subset_test, method = "spearman")
 korrelation
 

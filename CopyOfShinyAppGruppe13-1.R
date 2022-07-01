@@ -6,7 +6,7 @@ titanic_data <- data.table::fread("titanic_data.csv")
 #titanic_data <- data.table::fread("C:/Users/49177/git/htw/Statistik/StatistikSoSe2022Gruppe13/titanic_data.csv")
 #Daten aufbereitung
 titanic_data <- data.table::fread("titanic_data.csv")
-titanic_data <-  titanic_data %>% mutate(Age = replace(Age, Age>0 & Age<1, NA))#Statt Na 0?
+titanic_data <-  titanic_data %>% mutate(Age = replace(Age, Age>0 & Age<1, NA))
 titanic_data <- titanic_data %>%  transmute(
   Survived =  factor(Survived, 
                      levels = c(0,1), 
