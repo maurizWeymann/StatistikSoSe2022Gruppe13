@@ -15,7 +15,7 @@ titanic_data <- titanic_data %>%  transmute(
   Class = factor(Pclass), 
   Sex = factor(Sex),
   Age = as.integer(Age),
-  SibSp,
+  Siblings = SibSp,
   Parch,
   Fare = round(Fare,2),
   Cabin = substr( gsub("[^a-zA-Z]", "", Cabin), 1, 1),
@@ -50,9 +50,9 @@ ui <- dashboardPage(
   dashboardBody(
     plotOutput("all"),
     tableOutput("changingTable"),
-    plotOutput("flexPlot"),
-    plotOutput("sexAgeAndFare"),
-    plotOutput("density")
+    #plotOutput("flexPlot"),
+    #plotOutput("sexAgeAndFare"),
+    #plotOutput("density")
   )
 )
 
@@ -74,10 +74,79 @@ server <- function(input, output, session) {
       .shiny-input-container {
         color: #474747;
       }"))
-  output$changingTable <- renderTable(
-    #Tabelle survivalrate
-    (survivalrate <- table(data$Survived))
-  )
+output$changingTable <- renderTable(   
+    if( input$feature == colnames(titanic_data)[2] ){
+      if( input$relAbs ==  "relativ"){
+        #Survival rate vs class - RELETIVE
+          (s_vs_class <- addmargins(table(titanic_data$Survived,titanic_data$Class)))
+          (prop_s_vs_class <- round(addmargins(prop.table(table(titanic_data$Survived,titanic_data$Class))), 4) * 100)
+        
+
+      }else{
+        #Survival rate vs class - ABSOLUTE
+        
+      }
+      
+    }else if( input$feature == colnames(titanic_data)[3] ){
+      if( input$relAbs ==  "relativ"){
+        #Survival rate vs class - RELETIVE
+        
+      }else{
+        #Survival rate vs class - ABSOLUTE
+        
+      }
+    }else if( input$feature == colnames(titanic_data)[4] ){
+      if( input$relAbs ==  "relativ"){
+        #Survival rate vs class - RELETIVE
+        
+      }else{
+        #Survival rate vs class - ABSOLUTE
+        
+      }
+    }else if( input$feature == colnames(titanic_data)[5] ){
+      if( input$relAbs ==  "relativ"){
+        #Survival rate vs class - RELETIVE
+        
+      }else{
+        #Survival rate vs class - ABSOLUTE
+        
+      }
+    }else if( input$feature == colnames(titanic_data)[6] ){
+      if( input$relAbs ==  "relativ"){
+        #Survival rate vs class - RELETIVE
+        
+      }else{
+        #Survival rate vs class - ABSOLUTE
+        
+      }
+    }else if( input$feature == colnames(titanic_data)[7] ){
+      if( input$relAbs ==  "relativ"){
+        #Survival rate vs class - RELETIVE
+        
+      }else{
+        #Survival rate vs class - ABSOLUTE
+        
+      }
+    }else if( input$feature == colnames(titanic_data)[8] ){
+      if( input$relAbs ==  "relativ"){
+        #Survival rate vs class - RELETIVE
+        
+      }else{
+        #Survival rate vs class - ABSOLUTE
+        
+      }
+    
+    }else if( input$feature == colnames(titanic_data)[9] ){
+      if( input$relAbs ==  "relativ"){
+        #Survival rate vs class - RELETIVE
+        
+      }else{
+        #Survival rate vs class - ABSOLUTE
+        
+      }
+      
+    }
+)
     
   
   output$flexPlot <- renderPlot({
