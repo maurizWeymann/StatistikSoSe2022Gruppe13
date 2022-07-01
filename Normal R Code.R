@@ -6,11 +6,13 @@
 setwd("C:/Users/Oskar/OneDrive/4 Semester HTW/Statistik/Hausuafagbe mit git/StatistikSoSe2022Gruppe13")
 #Mauriz Working Drive
 #setwd("G:/Meine Ablage/Sem 5/Statistik/TeamWork")
-data<-read.csv("titanic_data.csv")
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(pacman,tidyverse, scales,plyr) 
+pacman::p_load(pacman,tidyverse, scales,dplyr, plyr,knitr, gmodels,DescTools)
 
+#WIchtig tabellen auf relativ, kreuztabelle, Bei alter gruppen machen(kinder, erwachsene,ältere) so 3/4 gruppen risikovergleich googlen,
+#Daten aufbereitung
 titanic_data <- data.table::fread("titanic_data.csv")
+titanic_data <-  titanic_data %>% mutate(Age = replace(Age, Age>0 & Age<1, NA))#Statt Na 0?
 titanic_data <- titanic_data %>%  transmute(
   Survived =  factor(Survived, 
                      levels = c(0,1), 
@@ -19,7 +21,7 @@ titanic_data <- titanic_data %>%  transmute(
   Class = factor(Pclass), 
   Sex = factor(Sex),
   Age = as.integer(Age),
-  Siblings = SibSp,
+  SibSp,
   Parch,
   Fare = round(Fare,2),
   Cabin = substr( gsub("[^a-zA-Z]", "", Cabin), 1, 1),
@@ -29,19 +31,8 @@ titanic_data <- titanic_data %>%  transmute(
 )
 titanic_data[titanic_data == ""] <- NA  
 
-#Daten aufbereitung
-data <-  data %>% mutate(Age = replace(Age, Age>0 & Age<1, NA))#Statt Na 0?
-data$Age <- as.integer(data$Age)
-data$Survived <- factor(data$Survived,
-                        levels = c(0,1),
-                        labels = c("Died","Survived"))
-data$Pclass <- factor(data$Pclass)
-data$Sex<- factor(data$Sex)
-data$Embarked <- factor(data$Embarked,
-                        levels = c("C","Q","S"),
-                        labels = c("Cherbourg","Queenstown","Southampton"))
 #Survival rate
-ggplot(data, aes(x = Survived, fill = Survived,label = scales::percent(prop.table(stat(count))))) + 
+ggplot(titanic_data, aes(x = Survived, fill = Survived,label = scales::percent(prop.table(stat(count))))) + 
   geom_bar()+
   geom_text(stat = 'count',
             vjust = -.3) + 
@@ -50,36 +41,37 @@ ggplot(data, aes(x = Survived, fill = Survived,label = scales::percent(prop.tabl
   guides(fill="none")
 
 #Tabelle
-(survivalrate <- addmargins(table(data$Survived)))
-(prop_survivalrate <- round(addmargins(prop.table(table(data$Survived))), 4) * 100)
+(survivalrate <- addmargins(table(titanic_data$Survived)))
+(prop_survivalrate <- round(addmargins(prop.table(table(titanic_data$Survived))), 4) * 100)
 
 #Survival rate vs class
-ggplot(data, aes(x = Survived,group = Pclass,label = scales::percent(prop.table(stat(count))))) +
+ggplot(titanic_data, aes(x = Survived,group = Class,label = scales::percent(prop.table(stat(count))))) +
   geom_bar(position="dodge",aes(fill=  factor(..x..))) +
   geom_text(stat = 'count',
             vjust = -.5) + 
-  facet_grid(~Pclass) +
+  facet_grid(~Class) +
   labs(y = "Number of Passengers",
        x = "Passenger class",
        title = "Survival rate vs Class")+
   guides(fill="none")
 
 #Relativ
-ggplot(data, aes(x= Survived, group=Pclass)) + 
+ggplot(titanic_data, aes(x= Survived, group=Class)) + 
   geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
   geom_text(aes( label = scales::percent(..prop..),
                  y= ..prop.. ), stat= "count", vjust = -.5) +
   labs(y = "Percent", fill="Survived?",title = "Survival rate vs class") +
-  facet_grid(~Pclass) +
+  facet_grid(~Class) +
   scale_y_continuous(labels = scales::percent)+
   guides(fill="none")
 
 #Tabelle
-(s_vs_class <- addmargins(table(data$Survived,data$Pclass)))
-(prop_s_vs_class <- round(addmargins(prop.table(table(data$Survived,data$Pclass))), 4) * 100)
+(s_vs_class <- addmargins(table(titanic_data$Survived,titanic_data$Class)))
+(prop_s_vs_class <- round(addmargins(prop.table(table(titanic_data$Survived,titanic_data$Class))), 4) * 100)
+#37% von klasse 1 geteilt durch 75,8% von klasse 3 zeigen wie viel häufiger leute aus klasse 3 sterben
 
 #Survival rate vs Sex
-ggplot(data, aes(x = Survived,group=Sex,label = scales::percent(prop.table(stat(count))))) +
+ggplot(titanic_data, aes(x = Survived,group=Sex,label = scales::percent(prop.table(stat(count))))) +
   geom_bar(position = "dodge",aes(fill=  factor(..x..))) +
   geom_text(stat = 'count',
            vjust = -.5) + 
@@ -88,7 +80,7 @@ ggplot(data, aes(x = Survived,group=Sex,label = scales::percent(prop.table(stat(
        title = "Survival vs Sex")+
   guides(fill="none")
 #Relativ
-ggplot(data, aes(x= Survived, group=Sex)) + 
+ggplot(titanic_data, aes(x= Survived, group=Sex)) + 
   geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
   geom_text(aes( label = scales::percent(..prop..),
                  y= ..prop.. ), stat= "count", vjust = -.5) +
@@ -97,33 +89,33 @@ ggplot(data, aes(x= Survived, group=Sex)) +
   scale_y_continuous(labels = scales::percent)+
   guides(fill="none")
 #Tabelle
-(s_vs_sex <- addmargins(table(data$Survived,data$Sex)))
-(prop_s_vs_sex <- round(addmargins(prop.table(table(data$Survived,data$Sex))), 4) * 100)
+(s_vs_sex <- addmargins(table(titanic_data$Survived,titanic_data$Sex)))
+(prop_s_vs_sex <- round(addmargins(prop.table(table(titanic_data$Survived,titanic_data$Sex))), 4) * 100)
 
 #Survival rate vs age
-ggplot(data, aes(x = Age, fill = Survived)) +
+ggplot(titanic_data, aes(x = Age, fill = Survived)) +
   geom_histogram(binwidth = 10) +
   labs(y = "Number of Passengers",
        x = "Age (binwidth = 10)",
        title = "Survival vs Age")
 
-ggplot(data, aes(x = Age, fill = Survived)) +
+ggplot(titanic_data, aes(x = Age, fill = Survived)) +
   geom_density(alpha= 0.7) +
   labs(y = "Number of Passengers",
        x = "Age",
        title = "Survival vs Age")
 
-ggplot(data, aes(x = Survived, y = Age)) +
+ggplot(titanic_data, aes(x = Survived, y = Age)) +
   geom_boxplot() +
   labs(y = "Age",
        x = "Survived",
        title = "Survival vs Age")
 #Tabelle
-(s_vs_age <- addmargins(table(data$Survived,data$Age)))
-(prop_s_vs_age <- round(addmargins(prop.table(table(data$Survived,data$Age))), 4) * 100)
+(s_vs_age <- addmargins(table(titanic_data$Survived,titanic_data$Age)))
+(prop_s_vs_age <- round(addmargins(prop.table(table(titanic_data$Survived,titanic_data$Age))), 4) * 100)
 
 #Survival rate vs Number of Siblings/Spouses Aboard
-ggplot(data, aes(x = Survived,group=SibSp,label = scales::percent(prop.table(stat(count))))) +
+ggplot(titanic_data, aes(x = Survived,group=SibSp,label = scales::percent(prop.table(stat(count))))) +
   geom_bar(position = "dodge",aes(fill=  factor(..x..))) +
   geom_text(stat = 'count',
             vjust = -.5) + 
@@ -134,7 +126,7 @@ ggplot(data, aes(x = Survived,group=SibSp,label = scales::percent(prop.table(sta
   guides(fill="none")
 
 #Relativ
-ggplot(data, aes(x= Survived, group=SibSp)) + 
+ggplot(titanic_data, aes(x= Survived, group=SibSp)) + 
   geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
   geom_text(aes( label = scales::percent(..prop..),
                  y= ..prop.. ), stat= "count", vjust = -.5) +
@@ -144,12 +136,12 @@ ggplot(data, aes(x= Survived, group=SibSp)) +
   guides(fill="none")
 
 #Tabelle
-(s_vs_sibsp <- addmargins(table(data$Survived,data$SibSp)))
-(prop_s_vs_sibsp <- round(addmargins(prop.table(table(data$Survived,data$SibSp))), 4) * 100)
+(s_vs_sibsp <- addmargins(table(titanic_data$Survived,titanic_data$SibSp)))
+(prop_s_vs_sibsp <- round(addmargins(prop.table(table(titanic_data$Survived,titanic_data$SibSp))), 4) * 100)
 
 #Survival rate vs Number of Parents/Children Aboard
 #Analyse: 1-2 Parents/Children Aboard hat höhere überlebenschance 3-6 sind zu wenig daten
-ggplot(data, aes(x = Survived,group=Parch,label = scales::percent(prop.table(stat(count))))) +
+ggplot(titanic_data, aes(x = Survived,group=Parch,label = scales::percent(prop.table(stat(count))))) +
   geom_bar(position = "dodge",aes(fill=  factor(..x..))) +
   geom_text(stat = 'count',
             vjust = -.5) + 
@@ -159,7 +151,7 @@ ggplot(data, aes(x = Survived,group=Parch,label = scales::percent(prop.table(sta
        title = "Survival vs number of parents/children aboard")+
   guides(fill="none")
 #Relativ
-ggplot(data, aes(x= Survived, group=Parch)) + 
+ggplot(titanic_data, aes(x= Survived, group=Parch)) + 
   geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
   geom_text(aes( label = scales::percent(..prop..),
                  y= ..prop.. ), stat= "count", vjust = -.5) +
@@ -168,27 +160,18 @@ ggplot(data, aes(x= Survived, group=Parch)) +
   scale_y_continuous(labels = scales::percent)+
   guides(fill="none")
 
-#Mit prozent
-ggplot(data, aes(x = Parch, fill = Survived,label = scales::percent(prop.table(stat(count))))) +
-  geom_bar()+
-  geom_text(stat = 'count',
-            vjust = -0.6, 
-            size = 3) + 
-  labs(y = "Number of Passengers",
-       x = "Number of Parents/Children Aboard",
-       title = "Survival Rates vs Number of Siblings/Spouses Aboard")
 #Tabelle
-(s_vs_parch <- addmargins(table(data$Survived,data$Parch)))
-(prop_s_vs_parch <- round(addmargins(prop.table(table(data$Survived,data$Parch))), 4) * 100)
+(s_vs_parch <- addmargins(table(titanic_data$Survived,titanic_data$Parch)))
+(prop_s_vs_parch <- round(addmargins(prop.table(table(titanic_data$Survived,titanic_data$Parch))), 4) * 100)
 
 #Survival rate vs Fare
-ggplot(data, aes(x = Fare, fill = Survived)) +
+ggplot(titanic_data, aes(x = Fare, fill = Survived)) +
   geom_histogram(binwidth = 10) +
   labs(y = "Number of Passengers",
        x = "Fare (binwidth = 10)",
        title = "Survival Rates vs Fare")
 
-ggplot(data, aes(x = Fare, fill = Survived)) +
+ggplot(titanic_data, aes(x = Fare, fill = Survived)) +
   geom_histogram(binwidth = 10) +
   labs(y = "Number of Passengers",
        x = "Fare (binwidth = 10)",
@@ -196,7 +179,7 @@ ggplot(data, aes(x = Fare, fill = Survived)) +
   xlim(0,300)
 
 #Survival rate vs Embarked Problem mit drop na werten
-ggplot(data %>% drop_na(), aes(x = Survived,group=Embarked,label = scales::percent(prop.table(stat(count))))) +
+ggplot(titanic_data %>% drop_na(), aes(x = Survived,group=Embarked,label = scales::percent(prop.table(stat(count))))) +
   geom_bar(position = "dodge",aes(fill=  factor(..x..))) +
   geom_text(stat = 'count',
             vjust = -.5) + 
@@ -206,7 +189,7 @@ ggplot(data %>% drop_na(), aes(x = Survived,group=Embarked,label = scales::perce
        title = "Survival vs port of embarkation")+
   guides(fill="none")
 #Relativ
-ggplot(data %>% drop_na(), aes(x= Survived, group=Embarked)) + 
+ggplot(titanic_data %>% drop_na(), aes(x= Survived, group=Embarked)) + 
   geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
   geom_text(aes( label = scales::percent(..prop..),
                  y= ..prop.. ), stat= "count", vjust = -.5) +
@@ -215,17 +198,17 @@ ggplot(data %>% drop_na(), aes(x= Survived, group=Embarked)) +
   scale_y_continuous(labels = scales::percent)+
   guides(fill="none")
 #Tabelle Problem mit drop na werten
-(s_vs_embarked <- addmargins(table(data$Survived,data$Embarked)))
-(prop_s_vs_embarked <- round(addmargins(prop.table(table(data$Survived,data$Embarked))), 4) * 100)
+(s_vs_embarked <- addmargins(table(titanic_data$Survived,titanic_data$Embarked)))
+(prop_s_vs_embarked <- round(addmargins(prop.table(table(titanic_data$Survived,titanic_data$Embarked))), 4) * 100)
 #Survival Rates vs Sex,Fare and Class
-ggplot(data,aes(x=Pclass,y=Fare,fill= Survived))+
+ggplot(titanic_data,aes(x=Class,y=Fare,fill= Survived))+
   geom_boxplot()+
   facet_grid(Sex ~ .)+
   ylim(0,180)+
   labs(x = "Passenger class",
        title = "Survival Rates vs Sex, Fare and Class")
 #Survival Rates vs Sex, Age and Class
-ggplot(data,aes(x=Pclass,y=Age,fill= Survived))+
+ggplot(titanic_data,aes(x=Class,y=Age,fill= Survived))+
   geom_boxplot()+
   facet_grid(Sex ~ .)+
   ylim(0,80)+
@@ -233,24 +216,24 @@ ggplot(data,aes(x=Pclass,y=Age,fill= Survived))+
        title = "Survival Rates vs Sex, Age, Fare and Class")
 
 #Junge männer zwischen 20-30 sterben mehr
-ggplot(data, aes(x = Age, fill = Survived)) +
+ggplot(titanic_data, aes(x = Age, fill = Survived)) +
   geom_density(alpha= 0.7) +
   facet_grid(Sex ~ .)+
   labs(y = "Number of Passengers",
        x = "Age",
        title = "Survival Rates vs Age and Sex")
 
-ggplot(data, aes(x = Survived, y = Age)) +
+ggplot(titanic_data, aes(x = Survived, y = Age)) +
   geom_boxplot() +
   labs(y = "Age",
        x = "Survived",
        title = "Survival Rates vs Age")
 #für Cabin mit anfangsbuchstaben bewerten
 #Kontingenztafel machen mit abh?ngitkeiten vs unabh?ngigkeit
-sex_impact<-count(data,Survived,Sex)
+sex_impact<-count(titanic_data,Survived,Sex)
 #Tabelle class,sex,embarked,Survived
-(s_vs_age_test <- addmargins(table(data$Survived,data$Pclass,data$Sex)))
-(prop_s_vs_age_test <- round(addmargins(prop.table(table(data$Survived,data$Pclass,data$Sex))), 4) * 100)
+(s_vs_age_test <- addmargins(table(titanic_data$Survived,titanic_data$Class,titanic_data$Sex)))
+(prop_s_vs_age_test <- round(addmargins(prop.table(table(titanic_data$Survived,titanic_data$Class,titanic_data$Sex))), 4) * 100)
 
 #Survival rate vs Cabin
 ggplot(titanic_data %>% drop_na(), aes(x = Cabin, fill = Survived)) +
@@ -292,12 +275,80 @@ ggplot(titanic_data, aes(x = Survived,group = Class,label = scales::percent(prop
        title = "Survival rate vs Class")
 
 #Survival rate vs class
-ggplot(titanic_data, aes(x = Survived,group = Pclass,label = scales::percent(prop.table(stat(count))))) +
+ggplot(titanic_data, aes(x = Survived,group = Class,label = scales::percent(prop.table(stat(count))))) +
   geom_bar(position="dodge",aes(fill=  factor(..x..))) +
   geom_text(stat = 'count',
             vjust = -.5) + 
-  facet_grid(~Pclass) +
+  facet_grid(~Class) +
   labs(y = "Number of Passengers",
        x = "Passenger class",
        title = "Survival rate vs Class")+
   guides(fill="none")
+################################################################################################################################
+#Test#
+# 3-Way Frequency Table
+mytable <- xtabs(~Survived+Sex+Class, data=titanic_data)
+n <- sum(mytable)
+ftable(outer(rowSums(mytable),colSums(mytable))/n)#Erwartetet verteilung wenn die unabhängig wären
+ftable(mytable)
+
+#Korelation Kategorialer Variablen
+attach(titanic_data)
+Kat_Va <- table(Survived,Class)
+
+Assocs(Kat_Va)
+chisq.test(Survived,Class)
+#asda
+pacman::p_load(rcompanion)
+summary(table(Survived,Class,Sex,Embarked))
+#trad
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ftable(prop.table(mytable,2)) # print table
+summary(mytable) # chi-square test of indepedence
+
+
+Subset_test<- subset(titanic_data%>%drop_na(), select = c(Age,SibSp,Parch,Fare))
+korrelation <- cor(Subset_test, method = "spearman")
+korrelation
+
+
+mytable <- table(Survived,Sex,Class) # A will be rows, B will be columns
+ftable(mytable) # print table
+summary(mytable)
+margin.table(mytable, 1) # A frequencies (summed over B)
+margin.table(mytable, 2) # B frequencies (summed over A)
+
+prop.table(mytable) # cell percentages
+prop.table(mytable, 1) # row percentages
+(prop_s_vs_cabin <- round(addmargins(prop.table(table(titanic_data$Survived,titanic_data$Cabin))), 4) * 100)
+test <-round(prop.table(mytable, 1),4)*100
+
+ftable(test) # column percentages
+
+     
