@@ -1,5 +1,5 @@
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(pacman,shiny,shinydashboard,tidyverse,data.table,DT,highcharter,ggplot2) 
+pacman::p_load(pacman,shiny,shinydashboard,tidyverse,data.table,DT,highcharter,ggplot2,plotly) 
 #Oskar
 titanic_data <- data.table::fread("titanic_data.csv")
 #Mauriz
@@ -36,20 +36,32 @@ ui <- dashboardPage(
   
   dashboardSidebar( width = 250,
     h3("Wähle deine Variablen"),
-    
-    selectInput("feature", "Feature", choices = colnames(titanic_data)[2:9], selected = colnames(titanic_data)[2]),
+    selectizeInput(inputId = "state",label = "Bundesland",choices = NULL),
+    sliderInput(inputId =  "num_features", label = "Choose number of features", value = 1, min = 1, max = 4, ticks = FALSE),
+    selectInput("feature", "Feature 1", choices = colnames(titanic_data)[2:9], selected = colnames(titanic_data)[2]),
     # Display only if can be plotted relative
     conditionalPanel(condition = "input.feature == 'Class' || input.feature == 'Sex' || input.feature == 'Age' || input.feature == 'Siblings' || input.feature == 'Parch' || input.feature == 'Fare' || input.feature == 'Cabin'  || input.feature == 'Embarked' ",
-                     #h2(input.feature),
-                     radioButtons("relAbs", "relativ oder absolut?", choices = c("relativ","absolut"), selected = "absolut" ),
-                     HTML("Not available for all"),
-
-                     selectInput("feature2", "Feature", choices = colnames(titanic_data)[2:9] , selected = colnames(titanic_data)[2]),
+                    #h2(input.feature),
+                    radioButtons("relAbs", "relativ oder absolut?", choices = c("relativ","absolut"), selected = "absolut" ),
+                    HTML("Not available for all"),
+                    conditionalPanel(condition =  "input.num_features == '2' ",
+                                     selectInput("feature2", "Feature 2", choices = colnames(titanic_data)[2:9] , selected = colnames(titanic_data)[2]),
+                    ),
+                    conditionalPanel(condition =  "input.num_features == '3' ",
+                                     selectInput("feature2", "Feature 2", choices = colnames(titanic_data)[2:9] , selected = colnames(titanic_data)[2]),
+                                     selectInput("feature3", "Feature 3", choices = colnames(titanic_data)[2:9] , selected = colnames(titanic_data)[2]),
+                    ),
+                    conditionalPanel(condition =  "input.num_features == '4' ",
+                                     selectInput("feature2", "Feature 2", choices = colnames(titanic_data)[2:9] , selected = colnames(titanic_data)[2]),
+                                     selectInput("feature3", "Feature 3", choices = colnames(titanic_data)[2:9] , selected = colnames(titanic_data)[2]),
+                                     selectInput("feature4", "Feature 4", choices = colnames(titanic_data)[2:9] , selected = colnames(titanic_data)[2]),
+                    ),
     )
   ),
   dashboardBody(
     plotOutput("all"),
-    tableOutput("changingTable"),
+    #tableOutput("changingTable"),
+    dataTableOutput("changingTable"),
     #plotOutput("flexPlot"),
     #plotOutput("sexAgeAndFare"),
     #plotOutput("density")
@@ -74,16 +86,18 @@ server <- function(input, output, session) {
       .shiny-input-container {
         color: #474747;
       }"))
-output$changingTable <- renderTable(   
+
+  
+output$changingTable <- renderDataTable(   
     if( input$feature == colnames(titanic_data)[2] ){
       if( input$relAbs ==  "relativ"){
         #Survival rate vs class - RELETIVE
-          (s_vs_class <- addmargins(table(titanic_data$Survived,titanic_data$Class)))
-          (prop_s_vs_class <- round(addmargins(prop.table(table(titanic_data$Survived,titanic_data$Class))), 4) * 100)
+        titanic_data %>% group_by(Survived)
         
 
       }else{
         #Survival rate vs class - ABSOLUTE
+        table(titanic_data$Survived,titanic_data$Class) #%>% group_by(titanic_data$Survived)
         
       }
       
@@ -146,6 +160,7 @@ output$changingTable <- renderTable(
       }
       
     }
+    #, hover = TRUE
 )
     
   
@@ -161,7 +176,7 @@ output$changingTable <- renderTable(
       ) 
     }
   })
-  output$all <- renderPlot({
+  output$all <- renderPlot(
     
     if( input$feature == colnames(titanic_data)[2] ){
       if( input$relAbs ==  "relativ"){
@@ -345,8 +360,8 @@ output$changingTable <- renderTable(
                title = "Survival Rates vs Class")
         }
     }
-    
-  })
+   
+  )
   output$sexAgeAndFare <- renderPlot({
     #Survival Rates vs Sex Age and Fare
     ggplot(titanic_data,aes(x=Class,y=Fare,fill= Survived))+
