@@ -59,9 +59,10 @@ ui <- dashboardPage(
     )
   ),
   dashboardBody(
+    plotlyOutput("plot100"),
     plotOutput("all"),
     #tableOutput("changingTable"),
-    dataTableOutput("changingTable"),
+    tableOutput("changingTable"),
     #plotOutput("flexPlot"),
     #plotOutput("sexAgeAndFare"),
     #plotOutput("density")
@@ -87,8 +88,9 @@ server <- function(input, output, session) {
         color: #474747;
       }"))
 
-  
-output$changingTable <- renderDataTable(   
+
+
+output$changingTable <- renderPrint(   
     if( input$feature == colnames(titanic_data)[2] ){
       if( input$relAbs ==  "relativ"){
         #Survival rate vs class - RELETIVE
@@ -162,7 +164,36 @@ output$changingTable <- renderDataTable(
     }
     #, hover = TRUE
 )
-    
+
+output$plot100 = renderPlotly(
+  plot_ly(titanic_data, x = Survived, y = ~Age , name = "age",type = 'bar') 
+  #%>% add_trace(y=~Fare, name ="cabin", barmode ="group")
+    %>%
+    layout(title = 'A Figure Displaying Itself',
+           plot_bgcolor='#e5ecf6', 
+           xaxis = list( 
+             zerolinecolor = '#ffff', 
+             zerolinewidth = 2, 
+             gridcolor = 'ffff'), 
+           yaxis = list( 
+             zerolinecolor = '#ffff', 
+             zerolinewidth = 2, 
+             gridcolor = 'ffff'))
+) 
+
+output$plot101 = renderPlotly(
+  plot_ly(titanic_data, x = ~Survived, y = ~Age, type = 'bar') %>%
+    layout(title = 'A Figure Displaying Itself',
+           plot_bgcolor='#e5ecf6', 
+           xaxis = list( 
+             zerolinecolor = '#ffff', 
+             zerolinewidth = 2, 
+             gridcolor = 'ffff'), 
+           yaxis = list( 
+             zerolinecolor = '#ffff', 
+             zerolinewidth = 2, 
+             gridcolor = 'ffff'))
+)  
   
   output$flexPlot <- renderPlot({
     if( input$plot == "Yes" && input$plot == "Yes" ){
