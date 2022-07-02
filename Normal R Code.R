@@ -7,7 +7,7 @@ setwd("C:/Users/Oskar/OneDrive/4 Semester HTW/Statistik/Hausuafagbe mit git/Stat
 #Mauriz Working Drive
 #setwd("G:/Meine Ablage/Sem 5/Statistik/TeamWork")
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(pacman,tidyverse, scales,dplyr, plyr,knitr, gmodels,DescTools)
+pacman::p_load(pacman,tidyverse, scales,dplyr, plyr,knitr, vcd ,DescTools)
 
 #WIchtig tabellen auf relativ, kreuztabelle, Bei alter gruppen machen(kinder, erwachsene,ältere) so 3/4 gruppen risikovergleich googlen,
 #Daten aufbereitung
@@ -67,6 +67,7 @@ ggplot(titanic_data, aes(x= Survived, group=Class)) +
 #Tabelle
 (s_vs_class <- addmargins(table(titanic_data$Survived,titanic_data$Class)))
 (prop_s_vs_class <- round(addmargins(prop.table(table(titanic_data$Survived,titanic_data$Class),2),1), 4) * 100)
+
 #37% von klasse 1 geteilt durch 75,8% von klasse 3 zeigen wie viel häufiger leute aus klasse 3 sterben
 
 
@@ -109,6 +110,12 @@ ggplot(titanic_data, aes(x = Age, fill = Survived)) +
        title = "Survival vs Age")
 
 ggplot(titanic_data, aes(x = Survived, y = Age)) +
+  geom_boxplot() +
+  labs(y = "Age",
+       x = "Survived",
+       title = "Survival vs Age")
+
+ggplot(titanic_data, aes(x = Survived, y = Age,fill = Sex)) +
   geom_boxplot() +
   labs(y = "Age",
        x = "Survived",
@@ -218,8 +225,16 @@ ggplot(titanic_data %>% drop_na(), aes(x = Cabin, fill = Survived)) +
   labs(y = "Number of Passengers",
        x = "Cabin",
        title = "Survival vs cabin")
+
+ggplot(titanic_data, aes(x = Cabin, fill = Survived)) +
+  geom_bar(position = "dodge") +
+  facet_grid(~Class) +
+  labs(y = "Number of Passengers",
+       x = "Cabin",
+       title = "Survival vs cabin")
+
 #Relativ
-ggplot(titanic_data %>% drop_na(), aes(x= Survived, group=Cabin)) + 
+ggplot(titanic_data, aes(x= Survived, group=Cabin)) + 
   geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
   geom_text(aes( label = scales::percent(..prop..),
                  y= ..prop.. ), stat= "count", vjust = -.5) +
@@ -300,9 +315,57 @@ ggplot(titanic_data, aes(x = Survived,group = Class,label = scales::percent(prop
        title = "Survival rate vs Class")+
   guides(fill="none")
 ################################################################################################################################
+#Korelation Zeigen
+#Survival vs Class
+assocstats(xtabs(~Survived+Class, data=titanic_data))
+CramerV(xtabs(~Survived+Class, data=titanic_data))
+#Survival vs Sex
+assocstats(xtabs(~Survived+Sex, data=titanic_data))
+CramerV(xtabs(~Survived+Sex, data=titanic_data))
+#Survival vs Age
+assocstats(xtabs(~Survived+Age, data=titanic_data))
+CramerV(xtabs(~Survived+Age, data=titanic_data))
+correlation(subset(titanic_data, select = c(Survived,Age)),method = "kendall",include_factors=TRUE)
+#Survival vs SibSp
+assocstats(xtabs(~Survived+SibSp, data=titanic_data))
+CramerV(xtabs(~Survived+SibSp, data=titanic_data))
+correlation(subset(titanic_data, select = c(Survived,SibSp)),method = "kendall",include_factors=TRUE)
+#Survival vs Embarked
+assocstats(xtabs(~Survived+Embarked, data=titanic_data))
+CramerV(xtabs(~Survived+Embarked, data=titanic_data))
+ggplot(data = titanic_data,aes(x=Age))
+correlation(titanic_data,method = "kendall",include_factors = TRUE)
+#Survival vs Fare
+assocstats(xtabs(~Survived+Fare, data=titanic_data))
+CramerV(xtabs(~Survived+Fare, data=titanic_data))
+correlation(subset(titanic_data, select = c(Survived,Fare)),method = "kendall",include_factors=TRUE)
+
+correlation(subset(titanic_data, select = c(Survived,Fare,Sex,Class)),method = "kendall",include_factors=TRUE)
+
+
+
+
+
+#Survival vs Sex + Class
+assocstats(xtabs(~Survived+Class+Sex, data=titanic_data))
+
+CramerV(xtabs(~Survived+Sex+Class, data=titanic_data))
+ftable(xtabs(~Survived+Sex+Class, data=titanic_data))
+correlation(subset(titanic_data, select = c(Survived,Sex,Class)),method = "auto")
+
+
+
+
+
+
+
+
+
+
 #Test#
 # 3-Way Frequency Table
-mytable <- xtabs(~Survived+Sex+Class, data=titanic_data)
+mytable <- xtabs(~Survived+Age, data=titanic_data)
+assocstats(mytable)
 n <- sum(mytable)
 ftable(outer(rowSums(mytable),colSums(mytable))/n)#Erwartetet verteilung wenn die unabhängig wären
 ftable(mytable)
@@ -310,11 +373,11 @@ ftable(mytable)
 #Korelation Kategorialer Variablen
 attach(titanic_data)
 Kat_Va <- table(Survived,Class)
-
+cramerV(mytable)
 Assocs(Kat_Va)
 chisq.test(Survived,Class)
 #asda
-pacman::p_load(rcompanion)
+
 summary(table(Survived,Class,Sex,Embarked))
 #trad
 
@@ -341,14 +404,14 @@ summary(table(Survived,Class,Sex,Embarked))
 
 
 
-
-
+testtable<- table(Class,Survived)
+cramerV(testtable, ci = TRUE)
 
 ftable(prop.table(mytable,2)) # print table
 summary(mytable) # chi-square test of indepedence
 
 
-Subset_test<- subset(titanic_data%>%drop_na(), select = c(Age,SibSp,Parch,Fare,Class))
+Subset_test<- subset(titanic_data%>%drop_na(), select = c(Age,SibSp,Parch,Fare))
 korrelation <- cor(Subset_test, method = "spearman")
 korrelation
 
