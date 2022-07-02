@@ -3,9 +3,9 @@
 #prozent anzeigen2: https://stackoverflow.com/questions/40249943/adding-percentage-labels-to-a-bar-chart-in-ggplot2
 #prozent in plot zeigen: https://sebastiansauer.github.io/percentage_plot_ggplot2_V2/
 #Oskars Working Drive
-setwd("C:/Users/Oskar/OneDrive/4 Semester HTW/Statistik/Hausuafagbe mit git/StatistikSoSe2022Gruppe13")
+#setwd("C:/Users/Oskar/OneDrive/4 Semester HTW/Statistik/Hausuafagbe mit git/StatistikSoSe2022Gruppe13")
 #Mauriz Working Drive
-#setwd("G:/Meine Ablage/Sem 5/Statistik/TeamWork")
+setwd("G:/Meine Ablage/Sem 5/Statistik/TeamWork")
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(pacman,tidyverse, scales,dplyr, plyr,knitr, vcd ,DescTools)
 

@@ -1,5 +1,5 @@
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(pacman,shiny,shinydashboard,tidyverse,data.table,DT,highcharter,ggplot2) 
+pacman::p_load(pacman,shiny,shinydashboard,tidyverse,data.table,DT,highcharter,ggplot2,plotly) 
 #Oskar
 titanic_data <- data.table::fread("titanic_data.csv")
 #Mauriz
@@ -15,7 +15,7 @@ titanic_data <- titanic_data %>%  transmute(
   Class = factor(Pclass), 
   Sex = factor(Sex),
   Age = as.integer(Age),
-  SibSp,
+  Siblings = SibSp,
   Parch,
   Fare = round(Fare,2),
   Cabin = substr( gsub("[^a-zA-Z]", "", Cabin), 1, 1),
@@ -36,23 +36,36 @@ ui <- dashboardPage(
   
   dashboardSidebar( width = 250,
     h3("Wähle deine Variablen"),
-    
-    selectInput("feature", "Feature", choices = colnames(titanic_data)[2:9], selected = colnames(titanic_data)[2]),
+    selectizeInput(inputId = "state",label = "Bundesland",choices = NULL),
+    sliderInput(inputId =  "num_features", label = "Choose number of features", value = 1, min = 1, max = 4, ticks = FALSE),
+    selectInput("feature", "Feature 1", choices = colnames(titanic_data)[2:9], selected = colnames(titanic_data)[2]),
     # Display only if can be plotted relative
     conditionalPanel(condition = "input.feature == 'Class' || input.feature == 'Sex' || input.feature == 'Age' || input.feature == 'Siblings' || input.feature == 'Parch' || input.feature == 'Fare' || input.feature == 'Cabin'  || input.feature == 'Embarked' ",
-                     #h2(input.feature),
-                     radioButtons("relAbs", "relativ oder absolut?", choices = c("relativ","absolut"), selected = "absolut" ),
-                     HTML("Not available for all"),
-
-                     selectInput("feature2", "Feature", choices = colnames(titanic_data)[2:9] , selected = colnames(titanic_data)[2]),
+                    #h2(input.feature),
+                    radioButtons("relAbs", "relativ oder absolut?", choices = c("relativ","absolut"), selected = "absolut" ),
+                    HTML("Not available for all"),
+                    conditionalPanel(condition =  "input.num_features == '2' ",
+                                     selectInput("feature2", "Feature 2", choices = colnames(titanic_data)[2:9] , selected = colnames(titanic_data)[2]),
+                    ),
+                    conditionalPanel(condition =  "input.num_features == '3' ",
+                                     selectInput("feature2", "Feature 2", choices = colnames(titanic_data)[2:9] , selected = colnames(titanic_data)[2]),
+                                     selectInput("feature3", "Feature 3", choices = colnames(titanic_data)[2:9] , selected = colnames(titanic_data)[2]),
+                    ),
+                    conditionalPanel(condition =  "input.num_features == '4' ",
+                                     selectInput("feature2", "Feature 2", choices = colnames(titanic_data)[2:9] , selected = colnames(titanic_data)[2]),
+                                     selectInput("feature3", "Feature 3", choices = colnames(titanic_data)[2:9] , selected = colnames(titanic_data)[2]),
+                                     selectInput("feature4", "Feature 4", choices = colnames(titanic_data)[2:9] , selected = colnames(titanic_data)[2]),
+                    ),
     )
   ),
   dashboardBody(
+    plotlyOutput("plot100"),
     plotOutput("all"),
+    #tableOutput("changingTable"),
     tableOutput("changingTable"),
-    plotOutput("flexPlot"),
-    plotOutput("sexAgeAndFare"),
-    plotOutput("density")
+    #plotOutput("flexPlot"),
+    #plotOutput("sexAgeAndFare"),
+    #plotOutput("density")
   )
 )
 
@@ -74,11 +87,113 @@ server <- function(input, output, session) {
       .shiny-input-container {
         color: #474747;
       }"))
-  output$changingTable <- renderTable(
-    #Tabelle survivalrate
-    (survivalrate <- table(data$Survived))
-  )
+
+
+
+output$changingTable <- renderPrint(   
+    if( input$feature == colnames(titanic_data)[2] ){
+      if( input$relAbs ==  "relativ"){
+        #Survival rate vs class - RELETIVE
+        titanic_data %>% group_by(Survived)
+        
+
+      }else{
+        #Survival rate vs class - ABSOLUTE
+        table(titanic_data$Survived,titanic_data$Class) #%>% group_by(titanic_data$Survived)
+        
+      }
+      
+    }else if( input$feature == colnames(titanic_data)[3] ){
+      if( input$relAbs ==  "relativ"){
+        #Survival rate vs class - RELETIVE
+        
+      }else{
+        #Survival rate vs class - ABSOLUTE
+        
+      }
+    }else if( input$feature == colnames(titanic_data)[4] ){
+      if( input$relAbs ==  "relativ"){
+        #Survival rate vs class - RELETIVE
+        
+      }else{
+        #Survival rate vs class - ABSOLUTE
+        
+      }
+    }else if( input$feature == colnames(titanic_data)[5] ){
+      if( input$relAbs ==  "relativ"){
+        #Survival rate vs class - RELETIVE
+        
+      }else{
+        #Survival rate vs class - ABSOLUTE
+        
+      }
+    }else if( input$feature == colnames(titanic_data)[6] ){
+      if( input$relAbs ==  "relativ"){
+        #Survival rate vs class - RELETIVE
+        
+      }else{
+        #Survival rate vs class - ABSOLUTE
+        
+      }
+    }else if( input$feature == colnames(titanic_data)[7] ){
+      if( input$relAbs ==  "relativ"){
+        #Survival rate vs class - RELETIVE
+        
+      }else{
+        #Survival rate vs class - ABSOLUTE
+        
+      }
+    }else if( input$feature == colnames(titanic_data)[8] ){
+      if( input$relAbs ==  "relativ"){
+        #Survival rate vs class - RELETIVE
+        
+      }else{
+        #Survival rate vs class - ABSOLUTE
+        
+      }
     
+    }else if( input$feature == colnames(titanic_data)[9] ){
+      if( input$relAbs ==  "relativ"){
+        #Survival rate vs class - RELETIVE
+        
+      }else{
+        #Survival rate vs class - ABSOLUTE
+        
+      }
+      
+    }
+    #, hover = TRUE
+)
+
+output$plot100 = renderPlotly(
+  plot_ly(titanic_data, x = Survived, y = ~Age , name = "age",type = 'bar') 
+  #%>% add_trace(y=~Fare, name ="cabin", barmode ="group")
+    %>%
+    layout(title = 'A Figure Displaying Itself',
+           plot_bgcolor='#e5ecf6', 
+           xaxis = list( 
+             zerolinecolor = '#ffff', 
+             zerolinewidth = 2, 
+             gridcolor = 'ffff'), 
+           yaxis = list( 
+             zerolinecolor = '#ffff', 
+             zerolinewidth = 2, 
+             gridcolor = 'ffff'))
+) 
+
+output$plot101 = renderPlotly(
+  plot_ly(titanic_data, x = ~Survived, y = ~Age, type = 'bar') %>%
+    layout(title = 'A Figure Displaying Itself',
+           plot_bgcolor='#e5ecf6', 
+           xaxis = list( 
+             zerolinecolor = '#ffff', 
+             zerolinewidth = 2, 
+             gridcolor = 'ffff'), 
+           yaxis = list( 
+             zerolinecolor = '#ffff', 
+             zerolinewidth = 2, 
+             gridcolor = 'ffff'))
+)  
   
   output$flexPlot <- renderPlot({
     if( input$plot == "Yes" && input$plot == "Yes" ){
@@ -92,7 +207,7 @@ server <- function(input, output, session) {
       ) 
     }
   })
-  output$all <- renderPlot({
+  output$all <- renderPlot(
     
     if( input$feature == colnames(titanic_data)[2] ){
       if( input$relAbs ==  "relativ"){
@@ -276,8 +391,8 @@ server <- function(input, output, session) {
                title = "Survival Rates vs Class")
         }
     }
-    
-  })
+   
+  )
   output$sexAgeAndFare <- renderPlot({
     #Survival Rates vs Sex Age and Fare
     ggplot(titanic_data,aes(x=Class,y=Fare,fill= Survived))+
