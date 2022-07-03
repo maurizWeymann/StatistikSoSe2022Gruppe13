@@ -5,9 +5,9 @@ account: gruppe13-sose2022
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 6585321
-bundleId: 6065949
+bundleId: 6066048
 url: https://gruppe13-sose2022.shinyapps.io/StatistikSoSe2022Gruppe13/
-when: 1656868304.28812
-lastSyncTime: 1656868304.28812
+when: 1656873000.99226
+lastSyncTime: 1656873000.99226
 asMultiple: FALSE
 asStatic: FALSE

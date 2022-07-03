@@ -80,11 +80,14 @@ ui <- dashboardPage(
   ),
   dashboardBody(
     uiOutput("plots"),
+    htmlOutput("cramer"),
     conditionalPanel(condition =  "input.num_features == '0' ",
                      plotlyOutput("test"),
     ),
     conditionalPanel(condition =  "input.num_features == '1' ",
-                     plotlyOutput("all"),
+                     
+                     plotlyOutput("all")
+                    
                      ),
 
     
@@ -117,13 +120,17 @@ server <- function(input, output, session) {
     
     
     if (input$num_features==0) {
+      output$cramer<- renderUI({ h2("")  })
       renderPlotly(  plot_ly(data = titanic_data,x = titanic_data[[input$feature_test]]) )
+      
     }
     else if (input$num_features==1) {
-      
+        
       
       if( input$feature == colnames(titanic_data)[2] ){
         if( input$relAbs ==  "relativ"){
+          output$cramer<- renderUI({ h2("SDSD")  })
+          
           ggplotly(ggplot(titanic_data, aes(x= Survived, group=Class)) + 
                      geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
                      geom_text(aes( label = scales::percent(..prop..),
@@ -132,7 +139,9 @@ server <- function(input, output, session) {
                      facet_grid(~Class) +
                      scale_y_continuous(labels = scales::percent)+
                      guides(fill=guide_legend("1=Died\n2=Survived")),tooltip = "y")
+          
         }else{
+          output$cramer<- renderUI({ h2("SDasdsaSD")  })
           #Survival rate vs class - ABSOLUTE
           ggplotly(ggplot(titanic_data, aes(x = Survived,group = Class,label = scales::percent(prop.table(stat(count))))) +
                      geom_bar(position="dodge",aes(fill=  factor(..x..))) +
@@ -147,6 +156,7 @@ server <- function(input, output, session) {
         
       }else if( input$feature == colnames(titanic_data)[3] ){
         if( input$relAbs ==  "relativ"){
+          output$cramer<- renderUI({ h2("SDSD")  })
           #Survival rate vs Sex - RELETIVE
           ggplotly(ggplot(titanic_data, aes(x= Survived, group=Sex)) + 
                      geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
@@ -158,6 +168,7 @@ server <- function(input, output, session) {
                      guides(fill=guide_legend("1=Died\n2=Survived")),tooltip = "y")
           
         }else{
+          output$cramer<- renderUI({ h2("SDSD")  })
           #Survival rate vs Sex - ABSOLUTE
           ggplotly(ggplot(titanic_data, aes(x = Survived,group=Sex,label = scales::percent(prop.table(stat(count))))) +
                      geom_bar(position = "dodge",aes(fill=  factor(..x..))) +
@@ -172,8 +183,10 @@ server <- function(input, output, session) {
         }
         
       }else if( input$feature == colnames(titanic_data)[4] ){
+        
         if( input$age_toggle ==  "Histogram"){
           if( input$Age_relAbs ==  "relativ"){
+            output$cramer<- renderUI({ h2("SDSD")  })
             #Survival rate vs Age - Historgramm RELETIVE
             ggplotly(ggplot(titanic_data, aes(x = Age, fill = Survived)) +
                        geom_histogram(binwidth = input$age_binsize,aes(y = after_stat(count / sum(count)))) +
@@ -183,6 +196,7 @@ server <- function(input, output, session) {
                        xlim(0,input$age_limit),tooltip = "y")
           }
           else{
+            output$cramer<- renderUI({ h2("SDSD")  })
             #Survival rate vs Age - Historgramm ABSOLUTE
             ggplotly(ggplot(titanic_data, aes(x = Age, fill = Survived)) +
                        geom_histogram(binwidth = input$age_binsize) +
@@ -192,6 +206,8 @@ server <- function(input, output, session) {
           }
           
         }else{
+          
+          output$cramer<- renderUI({ h2("SDSD")  })
           #Survival rate vs Age - ABSOLUTE
           ggplot(titanic_data, aes(x = Age, fill = Survived)) +
             geom_density(alpha= 0.7) +
@@ -208,6 +224,7 @@ server <- function(input, output, session) {
         
       }else if( input$feature == colnames(titanic_data)[5] ){
         if( input$relAbs ==  "relativ"){
+          output$cramer<- renderUI({ h2("SDSD")  })
           #Survival rate vs Number of Siblings/Spouses Aboard - RELETIVE
           ggplotly(ggplot(titanic_data, aes(x= Survived, group=SibSp)) + 
                      geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
@@ -219,7 +236,9 @@ server <- function(input, output, session) {
                      scale_y_continuous(labels = scales::percent)+
                      guides(fill=guide_legend("1=Died\n2=Survived")),tooltip = "y")
           
+          
         }else{
+          output$cramer<- renderUI({ h2("SDSD")  })
           #Survival rate vs Number of Siblings/Spouses Aboard - ABSOLUTE
           ggplotly(ggplot(titanic_data, aes(x = Survived,group=SibSp,label = scales::percent(prop.table(stat(count))))) +
                      geom_bar(position = "dodge",aes(fill=  factor(..x..))) +
@@ -233,6 +252,7 @@ server <- function(input, output, session) {
         }
       }else if( input$feature == colnames(titanic_data)[6] ){
         if( input$relAbs ==  "relativ"){
+          output$cramer<- renderUI({ h2("SDSD")  })
           #Survival rate vs Number of Parents/Children Aboard - RELETIVE
           ggplotly(ggplot(titanic_data, aes(x= Survived, group=Parch)) + 
                      geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
@@ -244,6 +264,7 @@ server <- function(input, output, session) {
                      scale_y_continuous(labels = scales::percent)+
                      guides(fill=guide_legend("1=Died\n2=Survived")),tooltip = "y")
         }else{
+          output$cramer<- renderUI({ h2("SDSD")  })
           #Survival rate vs Number of Parents/Children Aboard  - ABSOLUTE           
           ggplotly(ggplot(titanic_data, aes(x = Survived,group=Parch,label = scales::percent(prop.table(stat(count))))) +
                      geom_bar(position = "dodge",aes(fill=  factor(..x..))) +
@@ -259,6 +280,7 @@ server <- function(input, output, session) {
       }else if( input$feature == colnames(titanic_data)[7] ){      
         if( input$Fare_toggle ==  "Histogram"){
           if( input$Fare_relAbs ==  "relativ"){
+            output$cramer<- renderUI({ h2("SDSD")  })
             #Survival rate vs Fare - Historgramm RELETIVE
             ggplotly(ggplot(titanic_data, aes(x = Fare, fill = Survived)) +
                        geom_histogram(binwidth = input$fare_binsize,aes(y = after_stat(count / sum(count)))) +
@@ -268,6 +290,7 @@ server <- function(input, output, session) {
                        xlim(0,input$fare_limit),tooltip = "y")
           }
           else{
+            output$cramer<- renderUI({ h2("SDSD")  })
             #Survival rate vs Fare - Historgramm ABSOLUTE
             ggplotly(ggplot(titanic_data, aes(x = Fare, fill = Survived)) +
                        geom_histogram(binwidth = input$age_binsize) +
@@ -277,6 +300,7 @@ server <- function(input, output, session) {
           }
           
         }else{
+          output$cramer<- renderUI({ h2("SDSD")  })
           #Survival rate vs Fare - ABSOLUTE
           ggplotly(ggplot(titanic_data, aes(x = Survived, y = Fare)) +
                      geom_boxplot(aes(fill= Survived)) +
@@ -287,6 +311,7 @@ server <- function(input, output, session) {
         }
       }else if( input$feature == colnames(titanic_data)[8] ){
         if( input$relAbs ==  "relativ"){
+          output$cramer<- renderUI({ h2("SDSD")  })
           #Survival rate vs cabin - RELETIVE
           ggplotly(ggplot(titanic_data, aes(x= Survived, group=Cabin)) + 
                      geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
@@ -299,6 +324,7 @@ server <- function(input, output, session) {
                      guides(fill=guide_legend("1=Died\n2=Survived")),tooltip = "y")
           
         }else{
+          output$cramer<- renderUI({ h2("SDSD")  })
           #Survival rate vs cabin - ABSOLUTE
           ggplotly(ggplot(titanic_data, aes(x = Cabin, fill = Survived)) +
                      geom_bar(position = "dodge") +
@@ -308,6 +334,7 @@ server <- function(input, output, session) {
         }
       }else if( input$feature == colnames(titanic_data)[9] ){
         if( input$relAbs ==  "relativ"){
+          output$cramer<- renderUI({ h2("SDSD")  })
           #Survival rate vs Embarked - RELETIVE
           ggplotly(ggplot(titanic_data, aes(x= Survived, group=Embarked)) + 
                      geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
@@ -319,6 +346,7 @@ server <- function(input, output, session) {
                      scale_y_continuous(labels = scales::percent)+
                      guides(fill=guide_legend("1=Died\n2=Survived")),tooltip = "y")
         }else{
+          output$cramer<- renderUI({ h2("SDSD")  })
           #Survival rate vs Embarked - - ABSOLUTE
           ggplotly(ggplot(titanic_data, aes(x = Survived,group=Embarked,label = scales::percent(prop.table(stat(count))))) +
                      geom_bar(position = "dodge",aes(fill=  factor(..x..))) +
@@ -334,6 +362,7 @@ server <- function(input, output, session) {
     }
     else if (input$num_features==2) {
       if (input$feature_2=="cabin and class") {
+        output$cramer<- renderUI({ h2("SDSD")  })
         ggplotly(ggplot(titanic_data, aes(x = Cabin, fill = Survived)) +
                   geom_bar(position = "dodge") +
                   facet_grid(~Class) +
@@ -341,6 +370,7 @@ server <- function(input, output, session) {
                        x = "Cabin",
                        title = "Survival vs Cabin vs Class"),tooltip = "y")
       }else if (input$feature_2=="age and sex") {
+        output$cramer<- renderUI({ h2("SDSD")  })
         ggplotly(ggplot(titanic_data, aes(x = Age, fill = Survived)) +
                    geom_density(alpha= 0.7) +
                    facet_grid(Sex ~ .)+
@@ -348,6 +378,7 @@ server <- function(input, output, session) {
                         x = "Age",
                         title = "Survival vs Age vs Sex"),tooltip = "y")
       }else if (input$feature_2=="class and sex") {
+        output$cramer<- renderUI({ h2("SDSD")  })
         ggplotly(ggplot(titanic_data, aes(x = Class, fill = Survived)) +
                    geom_bar(position = "dodge") +
                    facet_grid(Sex ~ .)+
@@ -355,6 +386,7 @@ server <- function(input, output, session) {
                         x = "Class",
                         title = "Survival vs Class vs Sex"),tooltip = "y")
       }else if (input$feature_2=="class and age") {
+        output$cramer<- renderUI({ h2("SDSD")  })
         ggplotly(ggplot(titanic_data, aes(x = Age, fill = Survived)) +
                    geom_density(alpha= 0.7) +
                    facet_grid(Class ~ .)+
@@ -365,6 +397,7 @@ server <- function(input, output, session) {
     }
     else if (input$num_features==3) {
       if (input$feature_3=="sex and fare and class") {
+        output$cramer<- renderUI({ h2("SDSD")  })
         ggplotly(ggplot(titanic_data,aes(x=Class,y=Fare,fill= Survived))+
                    geom_boxplot()+
                    facet_grid(Sex ~ Survived)+
@@ -372,6 +405,7 @@ server <- function(input, output, session) {
                    labs(x = "Class",
                         title = "Survival vs Sex vs Fare vs Class"),tooltip = "y")
       }else if (input$feature_3=="sex and age and class") {
+        output$cramer<- renderUI({ h2("SDSD")  })
         ggplotly(ggplot(titanic_data,aes(x=Class,y=Age,fill= Survived))+
                    geom_boxplot()+
                    facet_grid(Sex ~ Survived)+
@@ -382,6 +416,7 @@ server <- function(input, output, session) {
     }
     else if (input$num_features==4) {
       if (input$feature_4=="Age vs Sex vs Embarked vs Class") {
+        output$cramer<- renderUI({ h2("SDSD")  })
         renderPlot( ggplot(titanic_data,aes(x=Embarked,y=Age,fill= Survived))+
                     geom_boxplot()+
                     facet_grid(Sex ~ Class)+
@@ -389,6 +424,7 @@ server <- function(input, output, session) {
                     labs(x = "",
                          title = "Survival vs Age vs Sex vs Embarked vs Class") )
       }else if (input$feature_4=="Sex vs Fare vs Class vs Embarked") {
+        output$cramer<- renderUI({ h2("SDSD")  })
         renderPlot( ggplot(titanic_data,aes(x=Embarked,y=Fare,fill= Survived))+
                     geom_boxplot()+
                     facet_grid(Sex ~ Class)+
