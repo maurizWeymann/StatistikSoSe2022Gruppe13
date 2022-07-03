@@ -34,7 +34,21 @@ ui <- dashboardPage(
   dashboardSidebar( width = 250,
                     h3("Wähle deine Variablen"),
                     sliderInput(inputId =  "num_features", label = "Choose number of features", value = 0, min = 0, max = 4, ticks = FALSE),
-                    
+                    conditionalPanel(condition =  "input.num_features == '2' ",
+                                                  selectInput( "feature_2", "feature_2", choices = c("cabin"), selected = c("cabin"),
+                                                               
+                                                               
+                                    ),
+                                     
+                    ),
+                    conditionalPanel(condition =  "input.num_features == '3' ",
+                                     selectInput("feature_test3", "feature_test3", choices = colnames(titanic_data)[1:9], selected = colnames(titanic_data)[1]),
+                                     
+                    ),
+                    conditionalPanel(condition =  "input.num_features == '4' ",
+                                     selectInput("feature_test4", "feature_test4", choices = colnames(titanic_data)[1:9], selected = colnames(titanic_data)[1]),
+                                     
+                    ),
                     conditionalPanel(condition =  "input.num_features == '0' ",
                                      selectInput("feature_test", "Select Feature to Plot", choices = colnames(titanic_data)[1:9], selected = colnames(titanic_data)[1]),
                                      
@@ -64,15 +78,9 @@ ui <- dashboardPage(
                                                                        ),
                                                      
                                                        ),
-                                     ),
-                    conditionalPanel(
-                      condition =  "input.num_features == '2' ",
-                      
-                    )
-
-                    
-                   
-
+                                     )
+                  
+    
   ),
   dashboardBody(
     uiOutput("plots"),
@@ -124,7 +132,7 @@ server <- function(input, output, session) {
                      geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
                      geom_text(aes( label = scales::percent(..prop..),
                                     y= ..prop.. ), stat= "count", vjust = -.5) +
-                     labs(y = "Percent", fill="Survived?",title = "Survival rate vs class",x = "Passenger class",) +
+                     labs(y = "Percent", fill="Survived?",title = "Survival vs Class",x = "Passenger class",) +
                      facet_grid(~Class) +
                      scale_y_continuous(labels = scales::percent)+
                      guides(fill=guide_legend("1=Died\n2=Survived")),tooltip = "y")
@@ -137,7 +145,7 @@ server <- function(input, output, session) {
                      facet_grid(~Class) +
                      labs(y = "Number of Passengers",
                           x = "Passenger class",
-                          title = "Survival rate vs Class")+
+                          title = "Survival vs Class")+
                      guides(fill=guide_legend("1=Died\n2=Survived")),tooltip = "y")
         }
         
@@ -193,7 +201,7 @@ server <- function(input, output, session) {
             geom_density(alpha= 0.7) +
             labs(y = "Number of Passengers",
                  x = "Age",
-                 title = "Survival Rates vs Age")
+                 title = "Survival vs Age")
           ggplotly(ggplot(titanic_data, aes(x = Survived, y = Age)) +
                      geom_boxplot(aes(fill= Survived)) +
                      labs(y = "Age",
@@ -259,7 +267,7 @@ server <- function(input, output, session) {
             ggplotly(ggplot(titanic_data, aes(x = Fare, fill = Survived)) +
                        geom_histogram(binwidth = input$fare_binsize,aes(y = after_stat(count / sum(count)))) +
                        labs(y = "Number of Passengers",
-                            title = "Survival vs fare")+
+                            title = "Survival vs Fare")+
                        scale_y_continuous(labels = scales::percent)+
                        xlim(0,input$fare_limit),tooltip = "y")
           }
@@ -278,7 +286,7 @@ server <- function(input, output, session) {
             geom_density(alpha= 0.7) +
             labs(y = "Number of Passengers",
                  x = "Fare",
-                 title = "Survival Rates vs Fare")
+                 title = "Survival vs Fare")
           ggplotly(ggplot(titanic_data, aes(x = Survived, y = Fare)) +
                      geom_boxplot(aes(fill= Survived)) +
                      labs(y = "Fare",
@@ -293,7 +301,7 @@ server <- function(input, output, session) {
                      geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
                      geom_text(aes( label = scales::percent(..prop..),
                                     y= ..prop.. ), stat= "count", vjust = -.5) +
-                     labs(y = "Percent",title = "Survival rate vs port of embarkation",
+                     labs(y = "Percent",title = "Survival vs port of embarkation",
                           x = "Cabin") +
                      facet_grid(~Cabin) +
                      scale_y_continuous(labels = scales::percent)+
@@ -305,7 +313,7 @@ server <- function(input, output, session) {
                      geom_bar(position = "dodge") +
                      labs(y = "Number of Passengers",
                           x = "Cabin",
-                          title = "Survival vs cabin"),tooltip = "y")
+                          title = "Survival vs Cabin"),tooltip = "y")
         }
       }else if( input$feature == colnames(titanic_data)[9] ){
         if( input$relAbs ==  "relativ"){
@@ -314,7 +322,7 @@ server <- function(input, output, session) {
                      geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
                      geom_text(aes( label = scales::percent(..prop..),
                                     y= ..prop.. ), stat= "count", vjust = -.5) +
-                     labs(y = "Percent",title = "Survival rate vs port of embarkation",
+                     labs(y = "Percent",title = "Survival vs port of embarkation",
                           x = "Port of embarkation") +
                      facet_grid(~Embarked) +
                      scale_y_continuous(labels = scales::percent)+
@@ -332,6 +340,27 @@ server <- function(input, output, session) {
                      guides(fill=guide_legend("1=Died\n2=Survived")),tooltip = "y")
         }
       }
+    }
+    else if (input$num_features==2) {
+      if (input$feature_2=="cabin" && input$feature_2=="class") {
+        ggplotly(ggplot(titanic_data, aes(x = Cabin, fill = Survived)) +
+                  geom_bar(position = "dodge") +
+                  facet_grid(~Class) +
+                  labs(y = "Number of Passengers",
+                       x = "Cabin",
+                       title = "Survival vs Cabin vs Class"),tooltip = "y")
+      }
+    }
+    else if (input$num_features==3) {
+      
+    }
+    else if (input$num_features==4) {
+      ggplot(titanic_data,aes(x=Class,y=Fare,fill= Survived))+
+        geom_boxplot()+
+        facet_grid(Sex ~ .)+
+        ylim(0,180)+
+        labs(x = "Passenger class",
+             title = "Survival Rates vs Sex, Fare and Class")
     }
     
    
