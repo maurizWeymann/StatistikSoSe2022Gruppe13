@@ -35,12 +35,8 @@ ui <- dashboardPage(
                     h3("Wähle deine Variablen"),
                     sliderInput(inputId =  "num_features", label = "Choose number of features", value = 0, min = 0, max = 4, ticks = FALSE),
                     conditionalPanel(condition =  "input.num_features == '2' ",
-                                                  selectInput( "feature_2", "feature_2", choices = c("cabin"), selected = c("cabin")),
-                                     selectInput( "feature_2", "feature_2", choices = c("cabin"), selected = c("cabin")),
-                                                               
-                                                               
-                                    
-                                     
+                                                selectInput( "feature_2", "Survived vs", choices = c("cabin and age","class and sex"), selected = c("cabin and age")),
+
                     ),
                     conditionalPanel(condition =  "input.num_features == '3' ",
                                      selectInput("feature_test3", "feature_test3", choices = colnames(titanic_data)[1:9], selected = colnames(titanic_data)[1]),
@@ -343,13 +339,20 @@ server <- function(input, output, session) {
       }
     }
     else if (input$num_features==2) {
-      if (input$feature_2=="cabin" && input$feature_2=="class") {
+      if (input$feature_2=="cabin and age") {
         ggplotly(ggplot(titanic_data, aes(x = Cabin, fill = Survived)) +
                   geom_bar(position = "dodge") +
                   facet_grid(~Class) +
                   labs(y = "Number of Passengers",
                        x = "Cabin",
                        title = "Survival vs Cabin vs Class"),tooltip = "y")
+      }else if (input$feature_2=="class and sex") {
+        ggplotly(ggplot(titanic_data, aes(x = Age, fill = Survived)) +
+                   geom_density(alpha= 0.7) +
+                   facet_grid(Sex ~ .)+
+                   labs(y = "Number of Passengers",
+                        x = "Age",
+                        title = "Survival Rates vs Age and Sex"),tooltip = "y")
       }
     }
     else if (input$num_features==3) {
