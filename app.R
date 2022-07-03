@@ -35,7 +35,7 @@ ui <- dashboardPage(
                     #h3("Wähle deine Variablen"),
                     sliderInput(inputId =  "num_features", label = "Choose number of features", value = 0, min = 0, max = 4, ticks = FALSE),
                     conditionalPanel(condition =  "input.num_features == '2' ",
-                                                selectInput( "feature_2", "Survived vs", choices = c("cabin and class","class and sex","class and age"), selected = c("cabin and age")),
+                                                selectInput( "feature_2", "Survived vs", choices = c("cabin and class","class and sex","class and age","age and sex"), selected = c("cabin and age")),
 
                     ),
                     conditionalPanel(condition =  "input.num_features == '3' ",
@@ -340,13 +340,20 @@ server <- function(input, output, session) {
                   labs(y = "Number of Passengers",
                        x = "Cabin",
                        title = "Survival vs Cabin vs Class"),tooltip = "y")
-      }else if (input$feature_2=="class and sex") {
+      }else if (input$feature_2=="age and sex") {
         ggplotly(ggplot(titanic_data, aes(x = Age, fill = Survived)) +
                    geom_density(alpha= 0.7) +
                    facet_grid(Sex ~ .)+
                    labs(y = "Density",
                         x = "Age",
                         title = "Survival vs Age vs Sex"),tooltip = "y")
+      }else if (input$feature_2=="class and sex") {
+        ggplotly(ggplot(titanic_data, aes(x = Class, fill = Survived)) +
+                   geom_bar(position = "dodge") +
+                   facet_grid(Sex ~ .)+
+                   labs(y = "Number of passengers",
+                        x = "Class",
+                        title = "Survival vs Class vs Sex"),tooltip = "y")
       }else if (input$feature_2=="class and age") {
         ggplotly(ggplot(titanic_data, aes(x = Age, fill = Survived)) +
                    geom_density(alpha= 0.7) +
