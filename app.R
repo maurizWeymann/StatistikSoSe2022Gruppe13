@@ -33,46 +33,57 @@ ui <- dashboardPage(
   
   dashboardSidebar( width = 250,
                     h3("Wähle deine Variablen"),
-                    sliderInput(inputId =  "num_features", label = "Choose number of features", value = 1, min = 1, max = 4, ticks = FALSE),
-                    selectInput("feature", "Feature 1", choices = colnames(titanic_data)[2:9], selected = colnames(titanic_data)[2]),
-                    # Display only if can be plotted relative
-                    conditionalPanel(condition = "input.feature == 'Class' || input.feature == 'Sex' || input.feature == 'Age' || input.feature == 'SibSp' || input.feature == 'Parch' || input.feature == 'Fare' || input.feature == 'Cabin'  || input.feature == 'Embarked' ",
-                                     #h2(input.feature),
+                    sliderInput(inputId =  "num_features", label = "Choose number of features", value = 0, min = 0, max = 4, ticks = FALSE),
+                    
+                    conditionalPanel(condition =  "input.num_features == '0' ",
+                                     selectInput("feature_test", "Select Feature to Plot", choices = colnames(titanic_data)[1:9], selected = colnames(titanic_data)[1]),
+                                     
+                                     ),
+                    conditionalPanel(condition =  "input.num_features == '1' ",
+                                     selectInput("feature", "Survived vs", choices = colnames(titanic_data)[2:9], selected = colnames(titanic_data)[2]),
+                                    
                                      conditionalPanel(condition =  "input.feature != 'Age' && input.feature != 'Fare' ",
                                                       radioButtons("relAbs", "relativ oder absolut?", choices = c("relativ","absolut"), selected = "absolut" ),
-                                     ), conditionalPanel(condition =  "input.feature == 'Age' ",
-                                                         radioButtons("age_toggle", "Boxplot oder Histogram", choices = c("Boxplot","Histogram"), selected = "Boxplot" ),
-                                                         sliderInput(inputId =  "age_limit", label = "Choose the maximum Age", value = 80, min = 0, max = 80, ticks = FALSE),
-                                     ),
-                                     conditionalPanel(condition =  "input.age_toggle == 'Histogram'&& input.feature == 'Age' ",
-                                                    
-                                                      sliderInput(inputId =  "age_binsize", label = "Choose size of bins", value = 10, min = 1, max = 40, ticks = FALSE),
-                                                      radioButtons("Age_relAbs", "Relativ or absolut?", choices = c("relativ","absolut"), selected = "absolut" ),),
+                                                      ),
+                                     conditionalPanel(condition =  "input.feature == 'Age' ",
+                                                      radioButtons("age_toggle", "Boxplot oder Histogram", choices = c("Boxplot","Histogram"), selected = "Boxplot" ),
+                                                      sliderInput(inputId =  "age_limit", label = "Choose the maximum Age", value = 80, min = 0, max = 80, ticks = FALSE),
+                                                      
+                                                      conditionalPanel(condition =  "input.age_toggle == 'Histogram'&& input.feature == 'Age' ",
+                                                                       sliderInput(inputId =  "age_binsize", label = "Choose size of bins", value = 10, min = 1, max = 40, ticks = FALSE),
+                                                                       radioButtons("Age_relAbs", "Relativ or absolut?", choices = c("relativ","absolut"), selected = "absolut" ),
+                                                                       ),
+                                                      ),
                                      conditionalPanel(condition =  "input.feature == 'Fare' ",
                                                       radioButtons("Fare_toggle", "Boxplot oder Histogram", choices = c("Boxplot","Histogram"), selected = "Boxplot" ),
                                                       sliderInput(inputId =  "fare_limit", label = "Choose the maximum fare", value = 180, min = 0, max = 513, ticks = FALSE),
-                                     ),
-                                     conditionalPanel(condition =  "input.Fare_toggle == 'Histogram'&& input.feature == 'Fare' ",
                                                       
-                                                      sliderInput(inputId =  "fare_binsize", label = "Choose size of bins", value = 10, min = 1, max = 200, ticks = FALSE),
-                                                      radioButtons("Fare_relAbs", "Relativ or absolut?", choices = c("relativ","absolut"), selected = "absolut" ),),
-                              
-                                     conditionalPanel(condition =  "input.num_features == '2' ",
-                                                      selectInput("feature2", "Feature 2", choices = colnames(titanic_data)[2:9] , selected = colnames(titanic_data)[2]),
+                                                      conditionalPanel(condition =  "input.Fare_toggle == 'Histogram'&&",
+                                                                       sliderInput(inputId =  "fare_binsize", label = "Choose size of bins", value = 10, min = 1, max = 200, ticks = FALSE),
+                                                                       radioButtons("Fare_relAbs", "Relativ or absolut?", choices = c("relativ","absolut"), selected = "absolut" ),
+                                                                       ),
+                                                     
+                                                       ),
                                      ),
-                                     conditionalPanel(condition =  "input.num_features == '3' ",
-                                                      selectInput("feature2", "Feature 2", choices = colnames(titanic_data)[2:9] , selected = colnames(titanic_data)[2]),
-                                                      selectInput("feature3", "Feature 3", choices = colnames(titanic_data)[2:9] , selected = colnames(titanic_data)[2]),
-                                     ),
-                                     conditionalPanel(condition =  "input.num_features == '4' ",
-                                                      selectInput("feature2", "Feature 2", choices = colnames(titanic_data)[2:9] , selected = colnames(titanic_data)[2]),
-                                                      selectInput("feature3", "Feature 3", choices = colnames(titanic_data)[2:9] , selected = colnames(titanic_data)[2]),
-                                                      selectInput("feature4", "Feature 4", choices = colnames(titanic_data)[2:9] , selected = colnames(titanic_data)[2]),
-                                     ),
+                    conditionalPanel(
+                      condition =  "input.num_features == '2' ",
+                      
                     )
+
+                    
+                   
+
   ),
   dashboardBody(
-    plotlyOutput("all"),
+    uiOutput("plots"),
+    conditionalPanel(condition =  "input.num_features == '0' ",
+                     plotlyOutput("test"),
+    ),
+    conditionalPanel(condition =  "input.num_features == '1' ",
+                     plotlyOutput("all"),
+                     ),
+
+    
     #tableOutput("changingTable"),
     #plotlyOutput("flexPlot"),
   )
@@ -98,6 +109,234 @@ server <- function(input, output, session) {
       }"))
   
   
+  output$plots <- renderUI(
+    
+    renderPlotly(
+    if (input$num_features==0) {
+      plot_ly(data = titanic_data,x = titanic_data[[input$feature_test]])
+    }
+    else if (input$num_features==1) {
+      
+      
+      if( input$feature == colnames(titanic_data)[2] ){
+        if( input$relAbs ==  "relativ"){
+          ggplotly(ggplot(titanic_data, aes(x= Survived, group=Class)) + 
+                     geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
+                     geom_text(aes( label = scales::percent(..prop..),
+                                    y= ..prop.. ), stat= "count", vjust = -.5) +
+                     labs(y = "Percent", fill="Survived?",title = "Survival rate vs class",x = "Passenger class",) +
+                     facet_grid(~Class) +
+                     scale_y_continuous(labels = scales::percent)+
+                     guides(fill=guide_legend("1=Died\n2=Survived")),tooltip = "y")
+        }else{
+          #Survival rate vs class - ABSOLUTE
+          ggplotly(ggplot(titanic_data, aes(x = Survived,group = Class,label = scales::percent(prop.table(stat(count))))) +
+                     geom_bar(position="dodge",aes(fill=  factor(..x..))) +
+                     geom_text(stat = 'count',
+                               vjust = -.5) + 
+                     facet_grid(~Class) +
+                     labs(y = "Number of Passengers",
+                          x = "Passenger class",
+                          title = "Survival rate vs Class")+
+                     guides(fill=guide_legend("1=Died\n2=Survived")),tooltip = "y")
+        }
+        
+      }else if( input$feature == colnames(titanic_data)[3] ){
+        if( input$relAbs ==  "relativ"){
+          #Survival rate vs Sex - RELETIVE
+          ggplotly(ggplot(titanic_data, aes(x= Survived, group=Sex)) + 
+                     geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
+                     geom_text(aes( label = scales::percent(..prop..),
+                                    y= ..prop.. ), stat= "count", vjust = -.5) +
+                     labs(y = "Percent", fill="Survived?",title = "Survival vs Sex",x="Sex") +
+                     facet_grid(~Sex) +
+                     scale_y_continuous(labels = scales::percent)+
+                     guides(fill=guide_legend("1=Died\n2=Survived")),tooltip = "y")
+          
+        }else{
+          #Survival rate vs Sex - ABSOLUTE
+          ggplotly(ggplot(titanic_data, aes(x = Survived,group=Sex,label = scales::percent(prop.table(stat(count))))) +
+                     geom_bar(position = "dodge",aes(fill=  factor(..x..))) +
+                     geom_text(stat = 'count',
+                               vjust = -.5) + 
+                     facet_grid(~Sex) +
+                     labs(y = "Number of Passengers",
+                          title = "Survival vs Sex",
+                          x="Sex")+
+                     guides(fill=guide_legend("1=Died\n2=Survived")),tooltip = "y")
+          
+        }
+        
+      }else if( input$feature == colnames(titanic_data)[4] ){
+        if( input$age_toggle ==  "Histogram"){
+          if( input$Age_relAbs ==  "relativ"){
+            #Survival rate vs Age - Historgramm RELETIVE
+            ggplotly(ggplot(titanic_data, aes(x = Age, fill = Survived)) +
+                       geom_histogram(binwidth = input$age_binsize,aes(y = after_stat(count / sum(count)))) +
+                       labs(y = "Number of Passengers",
+                            title = "Survival vs Age")+
+                       scale_y_continuous(labels = scales::percent)+
+                       xlim(0,input$age_limit),tooltip = "y")
+          }
+          else{
+            #Survival rate vs Age - Historgramm ABSOLUTE
+            ggplotly(ggplot(titanic_data, aes(x = Age, fill = Survived)) +
+                       geom_histogram(binwidth = input$age_binsize) +
+                       labs(y = "Number of Passengers",
+                            title = "Survival vs Age")+
+                       xlim(0,input$age_limit),tooltip = "y")
+          }
+          
+        }else{
+          #Survival rate vs Age - ABSOLUTE
+          ggplot(titanic_data, aes(x = Age, fill = Survived)) +
+            geom_density(alpha= 0.7) +
+            labs(y = "Number of Passengers",
+                 x = "Age",
+                 title = "Survival Rates vs Age")
+          ggplotly(ggplot(titanic_data, aes(x = Survived, y = Age)) +
+                     geom_boxplot(aes(fill= Survived)) +
+                     labs(y = "Age",
+                          x = "Survived",
+                          title = "Survival vs Age")+
+                     ylim(0,input$age_limit))
+        }
+        
+      }else if( input$feature == colnames(titanic_data)[5] ){
+        if( input$relAbs ==  "relativ"){
+          #Survival rate vs Number of Siblings/Spouses Aboard - RELETIVE
+          ggplotly(ggplot(titanic_data, aes(x= Survived, group=SibSp)) + 
+                     geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
+                     geom_text(aes( label = scales::percent(..prop..),
+                                    y= ..prop.. ), stat= "count", vjust = -.5) +
+                     labs(y = "Percent", fill="Survived?",title = "Survival vs number of siblings/spouses aboard",
+                          x = "Number of Siblings/Spouses Aboard") +
+                     facet_grid(~SibSp) +
+                     scale_y_continuous(labels = scales::percent)+
+                     guides(fill=guide_legend("1=Died\n2=Survived")),tooltip = "y")
+          
+        }else{
+          #Survival rate vs Number of Siblings/Spouses Aboard - ABSOLUTE
+          ggplotly(ggplot(titanic_data, aes(x = Survived,group=SibSp,label = scales::percent(prop.table(stat(count))))) +
+                     geom_bar(position = "dodge",aes(fill=  factor(..x..))) +
+                     geom_text(stat = 'count',
+                               vjust = -.5) + 
+                     facet_grid(~SibSp) +
+                     labs(y = "Number of Passengers",
+                          x = "Number of Siblings/Spouses Aboard",
+                          title = "Survival vs number of siblings/spouses aboard")+
+                     guides(fill=guide_legend("1=Died\n2=Survived")),tooltip = "y")
+        }
+      }else if( input$feature == colnames(titanic_data)[6] ){
+        if( input$relAbs ==  "relativ"){
+          #Survival rate vs Number of Parents/Children Aboard - RELETIVE
+          ggplotly(ggplot(titanic_data, aes(x= Survived, group=Parch)) + 
+                     geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
+                     geom_text(aes( label = scales::percent(..prop..),
+                                    y= ..prop.. ), stat= "count", vjust = -.5) +
+                     labs(y = "Percent",title = "Survival vs number of parents/children aboard",
+                          x = "Number of Parents/Children Aboard") +
+                     facet_grid(~Parch) +
+                     scale_y_continuous(labels = scales::percent)+
+                     guides(fill=guide_legend("1=Died\n2=Survived")),tooltip = "y")
+        }else{
+          #Survival rate vs Number of Parents/Children Aboard  - ABSOLUTE           
+          ggplotly(ggplot(titanic_data, aes(x = Survived,group=Parch,label = scales::percent(prop.table(stat(count))))) +
+                     geom_bar(position = "dodge",aes(fill=  factor(..x..))) +
+                     geom_text(stat = 'count',
+                               vjust = -.5) + 
+                     facet_grid(~Parch) +
+                     labs(y = "Number of Passengers",
+                          x = "Number of Parents/Children Aboard",
+                          title = "Survival vs number of parents/children aboard")+
+                     guides(fill=guide_legend("1=Died\n2=Survived")),tooltip = "y")
+          
+        }
+      }else if( input$feature == colnames(titanic_data)[7] ){      
+        if( input$Fare_toggle ==  "Histogram"){
+          if( input$Fare_relAbs ==  "relativ"){
+            #Survival rate vs Fare - Historgramm RELETIVE
+            ggplotly(ggplot(titanic_data, aes(x = Fare, fill = Survived)) +
+                       geom_histogram(binwidth = input$fare_binsize,aes(y = after_stat(count / sum(count)))) +
+                       labs(y = "Number of Passengers",
+                            title = "Survival vs fare")+
+                       scale_y_continuous(labels = scales::percent)+
+                       xlim(0,input$fare_limit),tooltip = "y")
+          }
+          else{
+            #Survival rate vs Fare - Historgramm ABSOLUTE
+            ggplotly(ggplot(titanic_data, aes(x = Fare, fill = Survived)) +
+                       geom_histogram(binwidth = input$age_binsize) +
+                       labs(y = "Number of Passengers",
+                            title = "Survival vs Fare")+
+                       xlim(0,input$fare_limit),tooltip = "y")
+          }
+          
+        }else{
+          #Survival rate vs Fare - ABSOLUTE
+          ggplot(titanic_data, aes(x = Fare, fill = Survived)) +
+            geom_density(alpha= 0.7) +
+            labs(y = "Number of Passengers",
+                 x = "Fare",
+                 title = "Survival Rates vs Fare")
+          ggplotly(ggplot(titanic_data, aes(x = Survived, y = Fare)) +
+                     geom_boxplot(aes(fill= Survived)) +
+                     labs(y = "Fare",
+                          x = "Survived",
+                          title = "Survival vs Fare")+
+                     ylim(0,input$fare_limit))
+        }
+      }else if( input$feature == colnames(titanic_data)[8] ){
+        if( input$relAbs ==  "relativ"){
+          #Survival rate vs cabin - RELETIVE
+          ggplotly(ggplot(titanic_data, aes(x= Survived, group=Cabin)) + 
+                     geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
+                     geom_text(aes( label = scales::percent(..prop..),
+                                    y= ..prop.. ), stat= "count", vjust = -.5) +
+                     labs(y = "Percent",title = "Survival rate vs port of embarkation",
+                          x = "Cabin") +
+                     facet_grid(~Cabin) +
+                     scale_y_continuous(labels = scales::percent)+
+                     guides(fill=guide_legend("1=Died\n2=Survived")),tooltip = "y")
+          
+        }else{
+          #Survival rate vs cabin - ABSOLUTE
+          ggplotly(ggplot(titanic_data, aes(x = Cabin, fill = Survived)) +
+                     geom_bar(position = "dodge") +
+                     labs(y = "Number of Passengers",
+                          x = "Cabin",
+                          title = "Survival vs cabin"),tooltip = "y")
+        }
+      }else if( input$feature == colnames(titanic_data)[9] ){
+        if( input$relAbs ==  "relativ"){
+          #Survival rate vs Embarked - RELETIVE
+          ggplotly(ggplot(titanic_data, aes(x= Survived, group=Embarked)) + 
+                     geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
+                     geom_text(aes( label = scales::percent(..prop..),
+                                    y= ..prop.. ), stat= "count", vjust = -.5) +
+                     labs(y = "Percent",title = "Survival rate vs port of embarkation",
+                          x = "Port of embarkation") +
+                     facet_grid(~Embarked) +
+                     scale_y_continuous(labels = scales::percent)+
+                     guides(fill=guide_legend("1=Died\n2=Survived")),tooltip = "y")
+        }else{
+          #Survival rate vs Embarked - - ABSOLUTE
+          ggplotly(ggplot(titanic_data, aes(x = Survived,group=Embarked,label = scales::percent(prop.table(stat(count))))) +
+                     geom_bar(position = "dodge",aes(fill=  factor(..x..))) +
+                     geom_text(stat = 'count',
+                               vjust = -.5) + 
+                     facet_grid(~Embarked) +
+                     labs(y = "Number of Passengers",
+                          x = "Port of embarkation",
+                          title = "Survival vs port of embarkation")+
+                     guides(fill=guide_legend("1=Died\n2=Survived")),tooltip = "y")
+        }
+      }
+    }
+    
+   
+  )
+  )
   
   output$changingTable <- renderPrint(   
     if( input$feature == colnames(titanic_data)[2] ){
@@ -174,231 +413,8 @@ server <- function(input, output, session) {
     #, hover = TRUE
   )
   
-  output$flexPlot <- renderPlotly({
-    if( input$plot == "Yes" && input$plot == "Yes" ){
-    }  
-    else if( input$plot == "Yes" ){
-      
-    }
-  })
-  output$all <- renderPlotly(
-    if( input$feature == colnames(titanic_data)[2] ){
-      if( input$relAbs ==  "relativ"){
-        ggplotly(ggplot(titanic_data, aes(x= Survived, group=Class)) + 
-                   geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
-                   geom_text(aes( label = scales::percent(..prop..),
-                                  y= ..prop.. ), stat= "count", vjust = -.5) +
-                   labs(y = "Percent", fill="Survived?",title = "Survival rate vs class",x = "Passenger class",) +
-                   facet_grid(~Class) +
-                   scale_y_continuous(labels = scales::percent)+
-                   guides(fill=guide_legend("1=Died\n2=Survived")),tooltip = "y")
-      }else{
-        #Survival rate vs class - ABSOLUTE
-        ggplotly(ggplot(titanic_data, aes(x = Survived,group = Class,label = scales::percent(prop.table(stat(count))))) +
-                   geom_bar(position="dodge",aes(fill=  factor(..x..))) +
-                   geom_text(stat = 'count',
-                             vjust = -.5) + 
-                   facet_grid(~Class) +
-                   labs(y = "Number of Passengers",
-                        x = "Passenger class",
-                        title = "Survival rate vs Class")+
-                   guides(fill=guide_legend("1=Died\n2=Survived")),tooltip = "y")
-      }
-      
-    }else if( input$feature == colnames(titanic_data)[3] ){
-      if( input$relAbs ==  "relativ"){
-        #Survival rate vs Sex - RELETIVE
-        ggplotly(ggplot(titanic_data, aes(x= Survived, group=Sex)) + 
-                   geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
-                   geom_text(aes( label = scales::percent(..prop..),
-                                  y= ..prop.. ), stat= "count", vjust = -.5) +
-                   labs(y = "Percent", fill="Survived?",title = "Survival vs Sex",x="Sex") +
-                   facet_grid(~Sex) +
-                   scale_y_continuous(labels = scales::percent)+
-                   guides(fill=guide_legend("1=Died\n2=Survived")),tooltip = "y")
-        
-      }else{
-        #Survival rate vs Sex - ABSOLUTE
-        ggplotly(ggplot(titanic_data, aes(x = Survived,group=Sex,label = scales::percent(prop.table(stat(count))))) +
-                   geom_bar(position = "dodge",aes(fill=  factor(..x..))) +
-                   geom_text(stat = 'count',
-                             vjust = -.5) + 
-                   facet_grid(~Sex) +
-                   labs(y = "Number of Passengers",
-                        title = "Survival vs Sex",
-                        x="Sex")+
-                   guides(fill=guide_legend("1=Died\n2=Survived")),tooltip = "y")
-        
-      }
-      
-    }else if( input$feature == colnames(titanic_data)[4] ){
-      if( input$age_toggle ==  "Histogram"){
-        if( input$Age_relAbs ==  "relativ"){
-          #Survival rate vs Age - Historgramm RELETIVE
-          ggplotly(ggplot(titanic_data, aes(x = Age, fill = Survived)) +
-                     geom_histogram(binwidth = input$age_binsize,aes(y = after_stat(count / sum(count)))) +
-                     labs(y = "Number of Passengers",
-                          title = "Survival vs Age")+
-                     scale_y_continuous(labels = scales::percent)+
-                     xlim(0,input$age_limit),tooltip = "y")
-        }
-        else{
-        #Survival rate vs Age - Historgramm ABSOLUTE
-        ggplotly(ggplot(titanic_data, aes(x = Age, fill = Survived)) +
-                   geom_histogram(binwidth = input$age_binsize) +
-                   labs(y = "Number of Passengers",
-                        title = "Survival vs Age")+
-                   xlim(0,input$age_limit),tooltip = "y")
-          }
-       
-      }else{
-        #Survival rate vs Age - ABSOLUTE
-        ggplot(titanic_data, aes(x = Age, fill = Survived)) +
-          geom_density(alpha= 0.7) +
-          labs(y = "Number of Passengers",
-               x = "Age",
-               title = "Survival Rates vs Age")
-        ggplotly(ggplot(titanic_data, aes(x = Survived, y = Age)) +
-          geom_boxplot(aes(fill= Survived)) +
-          labs(y = "Age",
-               x = "Survived",
-               title = "Survival vs Age")+
-          ylim(0,input$age_limit))
-      }
-      
-    }else if( input$feature == colnames(titanic_data)[5] ){
-      if( input$relAbs ==  "relativ"){
-        #Survival rate vs Number of Siblings/Spouses Aboard - RELETIVE
-        ggplotly(ggplot(titanic_data, aes(x= Survived, group=SibSp)) + 
-                   geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
-                   geom_text(aes( label = scales::percent(..prop..),
-                                  y= ..prop.. ), stat= "count", vjust = -.5) +
-                   labs(y = "Percent", fill="Survived?",title = "Survival vs number of siblings/spouses aboard",
-                        x = "Number of Siblings/Spouses Aboard") +
-                   facet_grid(~SibSp) +
-                   scale_y_continuous(labels = scales::percent)+
-                   guides(fill=guide_legend("1=Died\n2=Survived")),tooltip = "y")
-        
-      }else{
-        #Survival rate vs Number of Siblings/Spouses Aboard - ABSOLUTE
-        ggplotly(ggplot(titanic_data, aes(x = Survived,group=SibSp,label = scales::percent(prop.table(stat(count))))) +
-                   geom_bar(position = "dodge",aes(fill=  factor(..x..))) +
-                   geom_text(stat = 'count',
-                             vjust = -.5) + 
-                   facet_grid(~SibSp) +
-                   labs(y = "Number of Passengers",
-                        x = "Number of Siblings/Spouses Aboard",
-                        title = "Survival vs number of siblings/spouses aboard")+
-                   guides(fill=guide_legend("1=Died\n2=Survived")),tooltip = "y")
-      }
-    }else if( input$feature == colnames(titanic_data)[6] ){
-      if( input$relAbs ==  "relativ"){
-        #Survival rate vs Number of Parents/Children Aboard - RELETIVE
-        ggplotly(ggplot(titanic_data, aes(x= Survived, group=Parch)) + 
-                   geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
-                   geom_text(aes( label = scales::percent(..prop..),
-                                  y= ..prop.. ), stat= "count", vjust = -.5) +
-                   labs(y = "Percent",title = "Survival vs number of parents/children aboard",
-                        x = "Number of Parents/Children Aboard") +
-                   facet_grid(~Parch) +
-                   scale_y_continuous(labels = scales::percent)+
-                   guides(fill=guide_legend("1=Died\n2=Survived")),tooltip = "y")
-      }else{
-        #Survival rate vs Number of Parents/Children Aboard  - ABSOLUTE           
-        ggplotly(ggplot(titanic_data, aes(x = Survived,group=Parch,label = scales::percent(prop.table(stat(count))))) +
-                   geom_bar(position = "dodge",aes(fill=  factor(..x..))) +
-                   geom_text(stat = 'count',
-                             vjust = -.5) + 
-                   facet_grid(~Parch) +
-                   labs(y = "Number of Passengers",
-                        x = "Number of Parents/Children Aboard",
-                        title = "Survival vs number of parents/children aboard")+
-                   guides(fill=guide_legend("1=Died\n2=Survived")),tooltip = "y")
-        
-      }
-    }else if( input$feature == colnames(titanic_data)[7] ){      
-      if( input$Fare_toggle ==  "Histogram"){
-      if( input$Fare_relAbs ==  "relativ"){
-        #Survival rate vs Fare - Historgramm RELETIVE
-        ggplotly(ggplot(titanic_data, aes(x = Fare, fill = Survived)) +
-                   geom_histogram(binwidth = input$fare_binsize,aes(y = after_stat(count / sum(count)))) +
-                   labs(y = "Number of Passengers",
-                        title = "Survival vs fare")+
-                   scale_y_continuous(labels = scales::percent)+
-                   xlim(0,input$fare_limit),tooltip = "y")
-      }
-      else{
-        #Survival rate vs Fare - Historgramm ABSOLUTE
-        ggplotly(ggplot(titanic_data, aes(x = Fare, fill = Survived)) +
-                   geom_histogram(binwidth = input$age_binsize) +
-                   labs(y = "Number of Passengers",
-                        title = "Survival vs Fare")+
-                   xlim(0,input$fare_limit),tooltip = "y")
-      }
-      
-    }else{
-      #Survival rate vs Fare - ABSOLUTE
-      ggplot(titanic_data, aes(x = Fare, fill = Survived)) +
-        geom_density(alpha= 0.7) +
-        labs(y = "Number of Passengers",
-             x = "Fare",
-             title = "Survival Rates vs Fare")
-      ggplotly(ggplot(titanic_data, aes(x = Survived, y = Fare)) +
-                 geom_boxplot(aes(fill= Survived)) +
-                 labs(y = "Fare",
-                      x = "Survived",
-                      title = "Survival vs Fare")+
-                 ylim(0,input$fare_limit))
-    }
-    }else if( input$feature == colnames(titanic_data)[8] ){
-      if( input$relAbs ==  "relativ"){
-        #Survival rate vs cabin - RELETIVE
-        ggplotly(ggplot(titanic_data, aes(x= Survived, group=Cabin)) + 
-                   geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
-                   geom_text(aes( label = scales::percent(..prop..),
-                                  y= ..prop.. ), stat= "count", vjust = -.5) +
-                   labs(y = "Percent",title = "Survival rate vs port of embarkation",
-                        x = "Cabin") +
-                   facet_grid(~Cabin) +
-                   scale_y_continuous(labels = scales::percent)+
-                   guides(fill=guide_legend("1=Died\n2=Survived")),tooltip = "y")
-        
-      }else{
-        #Survival rate vs cabin - ABSOLUTE
-        ggplotly(ggplot(titanic_data, aes(x = Cabin, fill = Survived)) +
-                   geom_bar(position = "dodge") +
-                   facet_grid(~Cabin) +
-                   labs(y = "Number of Passengers",
-                        x = "Cabin",
-                        title = "Survival vs cabin"),tooltip = "y")
-      }
-    }else if( input$feature == colnames(titanic_data)[9] ){
-      if( input$relAbs ==  "relativ"){
-        #Survival rate vs Embarked - RELETIVE
-        ggplotly(ggplot(titanic_data, aes(x= Survived, group=Embarked)) + 
-                   geom_bar(aes(y = ..prop.., fill = factor(..x..)), stat="count") +
-                   geom_text(aes( label = scales::percent(..prop..),
-                                  y= ..prop.. ), stat= "count", vjust = -.5) +
-                   labs(y = "Percent",title = "Survival rate vs port of embarkation",
-                        x = "Port of embarkation") +
-                   facet_grid(~Embarked) +
-                   scale_y_continuous(labels = scales::percent)+
-                   guides(fill=guide_legend("1=Died\n2=Survived")),tooltip = "y")
-      }else{
-        #Survival rate vs Embarked - - ABSOLUTE
-        ggplotly(ggplot(titanic_data, aes(x = Survived,group=Embarked,label = scales::percent(prop.table(stat(count))))) +
-                   geom_bar(position = "dodge",aes(fill=  factor(..x..))) +
-                   geom_text(stat = 'count',
-                             vjust = -.5) + 
-                   facet_grid(~Embarked) +
-                   labs(y = "Number of Passengers",
-                        x = "Port of embarkation",
-                        title = "Survival vs port of embarkation")+
-                   guides(fill=guide_legend("1=Died\n2=Survived")),tooltip = "y")
-      }
-    }
-    
-  )
+
+
   
 }
 
