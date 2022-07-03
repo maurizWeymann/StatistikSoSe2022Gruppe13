@@ -35,10 +35,11 @@ ui <- dashboardPage(
                     h3("Wähle deine Variablen"),
                     sliderInput(inputId =  "num_features", label = "Choose number of features", value = 0, min = 0, max = 4, ticks = FALSE),
                     conditionalPanel(condition =  "input.num_features == '2' ",
-                                                  selectInput( "feature_2", "feature_2", choices = c("cabin"), selected = c("cabin"),
+                                                  selectInput( "feature_2", "feature_2", choices = c("cabin"), selected = c("cabin")),
+                                     selectInput( "feature_2", "feature_2", choices = c("cabin"), selected = c("cabin")),
                                                                
                                                                
-                                    ),
+                                    
                                      
                     ),
                     conditionalPanel(condition =  "input.num_features == '3' ",
